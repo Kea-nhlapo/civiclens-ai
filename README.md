@@ -99,31 +99,12 @@ Run `npm run build` in `frontend`; the static output is `frontend/dist`. Set `VI
 - Firebase Hosting: select `frontend/dist` as the public directory and configure SPA rewrites to `/index.html`.
 - Other static hosts: publish `frontend/dist` and route unknown paths to `index.html`.
 
-## Three-minute pitch script
 
-### 1. Problem — 0:00–0:35
+### 1. Problem 
 
 “Every day, citizens walk past potholes, broken streetlights, blocked drains, and illegal dumping. Reporting them should be simple, but people must find the right department, describe the issue formally, and navigate a municipal portal. That friction means problems go unreported.”
 
-### 2. Solution — 0:35–1:05
+### 2. Solution 
 
 “CivicLens AI turns one photo into a municipality-ready report draft in under 30 seconds. It identifies the issue, estimates urgency, recommends the responsible department, and writes a professional report. The citizen reviews it and submits it through the official channel—CivicLens never pretends submission happened.”
 
-### 3. Demo flow — 1:05–1:50
-
-“I’ll upload this pothole photo, add its location, and tap Generate. Gemini analyzes the visual evidence and returns a high-severity road hazard. The result card shows confidence, the Roads and Stormwater Department, a recommended action, and a complete report I can copy. If venue Wi-Fi fails, this clearly labeled demo button proves the entire experience remains pitch-ready.”
-
-### 4. Technical implementation — 1:50–2:25
-
-“The mobile-responsive frontend uses React, TypeScript, Tailwind, and Framer Motion. A FastAPI backend validates the image and sends it with citizen context to Gemini using multimodal structured output. Pydantic validates every response. Invalid output or a missing key automatically falls back to safe demo data. The API is containerized for Cloud Run and the frontend deploys to any static host.”
-
-### 5. Post-hackathon work — 2:25–3:00
-
-“Next we would add GPS consent, municipality-specific routing, multilingual drafts, accessibility testing, duplicate-incident clustering, and direct integrations where municipalities expose supported APIs. We would also add human feedback to improve local classifications. CivicLens makes civic participation faster without removing human review or overstating what AI has done.”
-
-## Safety and scope
-
-- Generated classifications may be wrong; citizens should review the draft.
-- Severity is an estimate, not a legal or engineering assessment.
-- Emergencies should go to local emergency services, not this application.
-- Direct municipal submission and reference-number tracking are future integrations.
