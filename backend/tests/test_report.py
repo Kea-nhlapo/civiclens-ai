@@ -28,10 +28,11 @@ def test_analyze_report_uses_fallback_without_api_key(monkeypatch) -> None:
     ))
     assert response.status_code == 200
     payload = response.json()
-    assert payload["issue_type"] == "Pothole"
-    assert payload["severity"] == "High"
+    assert payload["issue_type"] == "Analysis unavailable"
+    assert payload["severity"] == "Low"
+    assert payload["confidence"] == 0.0
     assert payload["municipal_report"]["location"] == "Main Road"
-    assert "draft" in payload["citizen_message"].lower()
+    assert "unavailable" in payload["citizen_message"].lower()
     assert len(payload["next_steps"]) == 4
 
 

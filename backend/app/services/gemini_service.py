@@ -16,6 +16,14 @@ professional report. Return strict JSON matching the supplied schema only. Never
 claim certainty beyond the visible evidence, or claim that a report was submitted. Explicitly state
 that the output is a draft that the citizen must review and submit manually. Severity must be exactly
 Low, Medium, High, or Critical. Confidence must be between 0 and 1.
+
+Do not force the image into a known civic-issue category. First determine whether the image actually
+shows a public infrastructure or public-space maintenance problem. If it does not, set issue_type to
+"Not a civic infrastructure issue", use Low severity, select "No municipal department recommended",
+and clearly explain what is visible and why no civic report should be submitted. If the image is too
+blurry, dark, obstructed, or ambiguous to classify reliably, set issue_type to "Unable to classify",
+use Low severity, keep confidence appropriately low, and request a clearer photo. Base every field on
+visible evidence and the supplied context; do not invent objects, damage, locations, or hazards.
 """
 
 
@@ -43,4 +51,3 @@ def analyze_with_gemini(image: bytes, mime_type: str, location: str | None, note
     except Exception as exc:  # Gemini/network/schema errors all degrade safely for demo continuity.
         logger.warning("Gemini analysis unavailable; using fallback (%s)", type(exc).__name__)
         return fallback_report(location, notes)
-

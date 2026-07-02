@@ -5,31 +5,29 @@ def fallback_report(location: str | None = None, notes: str | None = None) -> An
     place = location.strip() if location and location.strip() else "Location to be confirmed by citizen"
     evidence = notes.strip() if notes and notes.strip() else "Photo evidence attached; exact dimensions and road position require inspection."
     return AnalysisReport(
-        issue_type="Pothole",
-        severity="High",
-        confidence=0.91,
-        summary="Large pothole visible on a public road, likely creating risk for vehicles and pedestrians.",
-        responsible_department="Roads and Stormwater Department",
-        recommended_action="Dispatch a road maintenance team for inspection, temporary hazard marking, and repair.",
+        issue_type="Analysis unavailable",
+        severity="Low",
+        confidence=0.0,
+        summary="The image could not be analyzed by Gemini. No civic issue classification has been inferred.",
+        responsible_department="To be determined after manual review",
+        recommended_action="Review the photo manually and retry once AI analysis is available.",
         municipal_report=MunicipalReport(
-            title="Urgent Road Hazard Report: Large Pothole",
+            title="Draft Civic Issue Report: Manual Review Required",
             description=(
-                "A large pothole appears to be present on a public roadway at the location listed below. "
-                "The damaged surface may pose a safety risk to vehicles, cyclists, and pedestrians. "
-                "Please review the attached photo, inspect the site, and schedule appropriate repairs. "
-                "This is an AI-generated draft and should be reviewed before manual submission."
+                "Automated image analysis was unavailable, so the type and severity of this issue could not be verified. "
+                "Please review the attached photo and citizen notes manually before choosing a department or submitting. "
+                "This draft does not claim that a civic infrastructure problem was detected."
             ),
             location=place,
             evidence_notes=evidence,
-            priority="High",
-            suggested_department="Roads and Stormwater Department",
+            priority="Low",
+            suggested_department="To be determined after manual review",
         ),
-        citizen_message="Your draft report is ready. Review it, then submit it manually to your municipality.",
+        citizen_message="AI analysis is unavailable. Review the image manually or retry before submitting anything.",
         next_steps=[
-            "Confirm the location",
-            "Attach the photo",
-            "Submit to the municipal service portal",
-            "Save your reference number",
+            "Confirm that Gemini is configured",
+            "Retry the image analysis",
+            "Review the photo and notes manually",
+            "Only submit after confirming the issue",
         ],
     )
-
