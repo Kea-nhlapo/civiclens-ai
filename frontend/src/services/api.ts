@@ -1,3 +1,3 @@
 import type { CivicReport } from '../types/report';
-const API_BASE_URL=(import.meta.env.VITE_API_BASE_URL||'http://localhost:8080').replace(/\/$/,'');
+const API_BASE_URL=(import.meta.env.VITE_API_BASE_URL||(import.meta.env.DEV?'http://localhost:8080':'')).replace(/\/$/,'');
 export async function analyzeReport(image:File,location:string,notes:string):Promise<CivicReport>{const body=new FormData();body.append('image',image);if(location.trim())body.append('location',location.trim());if(notes.trim())body.append('notes',notes.trim());const response=await fetch(`${API_BASE_URL}/api/analyze-report`,{method:'POST',body});if(!response.ok){const error=await response.json().catch(()=>({detail:'Analysis failed. Please try again.'}));throw new Error(error.detail||'Analysis failed.');}return response.json();}
