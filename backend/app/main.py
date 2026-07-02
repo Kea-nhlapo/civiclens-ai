@@ -19,12 +19,12 @@ app.add_middleware(
 
 
 @app.get("/")
-def root() -> dict[str, str]:
+async def root() -> dict[str, str]:
     return {"message": "CivicLens AI Backend is running"}
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+async def health() -> dict[str, str]:
     return {"status": "ok", "service": "CivicLens AI Backend"}
 
 
