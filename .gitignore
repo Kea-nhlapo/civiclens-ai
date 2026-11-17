@@ -11,3 +11,4 @@ frontend/vite.config.d.ts
 .DS_Store
 .vercel
 .env*
+models/*.onnx
