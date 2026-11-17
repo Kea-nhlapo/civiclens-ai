@@ -44,6 +44,20 @@ def _what(issue: Issue) -> str:
     return "a streetlight that is not working"
 
 
+def _evidence(issue: Issue) -> str:
+    if issue.category == "streetlight":
+        seen = (
+            f"streetlight visible in the photo (highest confidence {issue.confidence:.0%})"
+            if issue.count
+            else "no streetlight visible in the photo"
+        )
+        return f"Fault reported by the citizen; {seen}"
+    return (
+        f"Automated detection: {_what(issue)}, highest confidence {issue.confidence:.0%}, "
+        f"covering about {issue.coverage:.0%} of the photo"
+    )
+
+
 def _summary_of(issue: Issue) -> IssueSummary:
     return IssueSummary(**vars(issue))
 
@@ -114,17 +128,14 @@ def build_report(
         listed = "; ".join(f"{_what(i)} ({i.severity.lower()} priority, {i.department})" for i in others)
         also = f" The same photo also shows {listed}."
 
+    where = f"at {location.strip()}" if location and location.strip() else "at a location the citizen still needs to confirm"
     if lead.category == "streetlight":
         found = "A citizen reports a streetlight that is not working."
     else:
         found = f"The detector found {_what(lead)} with up to {lead.confidence:.0%} confidence."
     summary = f"{found} Severity is {lead.severity}: {lead.reason}{also}"
 
-    evidence = "Automated detection: " + "; ".join(
-        f"{_what(i)}, highest confidence {i.confidence:.0%}"
-        + (f", covering about {i.coverage:.0%} of the photo" if i.category != "streetlight" else "")
-        for i in issues
-    ) + "."
+    evidence = "; ".join(_evidence(i) for i in issues) + "."
     if note:
         evidence += f" Citizen note: {note}"
 
@@ -138,7 +149,7 @@ def build_report(
         municipal_report=MunicipalReport(
             title=f"{lead.severity} priority: {lead.issue_type.lower()} reported",
             description=(
-                f"A citizen photo shows {_what(lead)} at {place}. {lead.reason}{also} "
+                f"A citizen photo shows {_what(lead)} {where}. {lead.reason}{also} "
                 "Please inspect the site. This draft was generated automatically and should be checked before it is submitted."
             ),
             location=place,
