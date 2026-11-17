@@ -1,8 +1,8 @@
 """Optional: let Gemini word the report more naturally.
 
-The detector decides what is in the photo. Gemini only rewrites the text around
-those facts, and never changes the issue type, severity, confidence or boxes.
-Without GEMINI_API_KEY, or if the call fails, the detector's own report is used.
+The detectors decide what is in the photo. Gemini only rewrites the text around
+those facts, and never changes the issue types, severities, confidences or boxes.
+Without GEMINI_API_KEY, or if the call fails, the detectors' own report is used.
 """
 
 import logging
@@ -15,10 +15,10 @@ from app.models.schemas import AnalysisReport, ReportWording
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You help a citizen word a municipal pothole report. An object detector has already
-analysed the attached photo. Treat its findings below as fixed facts: do not change the number of
-potholes, the severity, or the confidence, and do not add hazards, measurements or locations that are
-not in the facts or the photo. Write plainly and briefly for a South African municipal roads department.
+SYSTEM_PROMPT = """You help a citizen word a municipal report. Object detectors have already analysed
+the attached photo. Treat their findings below as fixed facts: do not change what was found, how many,
+the severities, or the confidences, and do not add hazards, measurements or locations that are not in
+the facts or the photo. Write plainly and briefly for a South African municipality.
 Never claim the report was submitted; it is a draft the citizen reviews and submits themselves.
 Return strict JSON matching the schema."""
 
@@ -27,13 +27,16 @@ def reword_with_gemini(
     report: AnalysisReport, image: bytes, mime_type: str, location: str | None, notes: str | None
 ) -> AnalysisReport:
     api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or report.pothole_count == 0:
+    if not api_key or not report.issues:
         return report
 
+    findings = "\n".join(
+        f"- {i.issue_type}: {i.count} found, severity {i.severity}, highest confidence {i.confidence:.0%}, "
+        f"department {i.department}. Why: {i.reason}"
+        for i in report.issues
+    )
     facts = (
-        f"Detector findings: {report.pothole_count} pothole(s), severity {report.severity}, "
-        f"highest confidence {report.confidence:.0%}, covering about {report.coverage:.0%} of the photo.\n"
-        f"Why that severity: {report.severity_reason}\n"
+        f"Detector findings, most severe first:\n{findings}\n"
         f"Citizen location: {location or 'not provided'}\n"
         f"Citizen notes: {notes or 'not provided'}\n"
         f"Current draft title: {report.municipal_report.title}\n"
@@ -54,7 +57,7 @@ def reword_with_gemini(
             ),
         )
         wording = ReportWording.model_validate_json(response.text or "")
-    except Exception as exc:  # Gemini, network and schema errors all fall back to the detector's text.
+    except Exception as exc:  # Gemini, network and schema errors all fall back to the detectors' text.
         logger.warning("Gemini wording unavailable; using detector report (%s)", type(exc).__name__)
         return report
 

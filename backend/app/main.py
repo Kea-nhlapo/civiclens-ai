@@ -7,7 +7,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.detection.detector import detector, load_photo
-from app.detection.severity import assess
+from app.detection.issues import find_issues
 from app.models.schemas import AnalysisReport
 from app.services.gemini_service import reword_with_gemini
 from app.services.report_service import build_report
@@ -23,7 +23,7 @@ async def lifespan(_: FastAPI):
     try:
         await asyncio.to_thread(detector.warm_up)
     except Exception as exc:
-        logger.error("Pothole model could not be loaded at startup: %s", exc)
+        logger.error("Detection models could not be loaded at startup: %s", exc)
     yield
 
 
@@ -47,9 +47,11 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "service": "CivicLens AI Backend"}
 
 
-def analyze(data: bytes, mime_type: str, location: str | None, notes: str | None) -> AnalysisReport:
+def analyze(
+    data: bytes, mime_type: str, location: str | None, notes: str | None, streetlight_out: bool = False
+) -> AnalysisReport:
     result = detector.detect(load_photo(data))
-    report = build_report(result, assess(result.detections), location, notes)
+    report = build_report(result, find_issues(result.detections, streetlight_out), location, notes)
     return reword_with_gemini(report, data, mime_type, location, notes)
 
 
@@ -58,6 +60,8 @@ async def analyze_report(
     image: UploadFile = File(...),
     location: str | None = Form(default=None),
     notes: str | None = Form(default=None),
+    # A photo can't show whether a light works, so the citizen tells us.
+    streetlight_out: bool = Form(default=False),
 ) -> AnalysisReport:
     data = await image.read()
     try:
@@ -65,10 +69,10 @@ async def analyze_report(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     try:
-        return await asyncio.to_thread(analyze, data, mime_type, location, notes)
+        return await asyncio.to_thread(analyze, data, mime_type, location, notes, streetlight_out)
     except (OSError, RuntimeError) as exc:
-        logger.error("Pothole detection failed: %s", exc)
-        raise HTTPException(status_code=503, detail="The pothole detector is not available right now. Please try again shortly.") from exc
+        logger.error("Detection failed: %s", exc)
+        raise HTTPException(status_code=503, detail="The detectors are not available right now. Please try again shortly.") from exc
 
 
 if __name__ == "__main__":

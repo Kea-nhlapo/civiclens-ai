@@ -16,13 +16,21 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r requirements.txt
-      # The detection model is about 108 MB, so it is fetched once and cached.
-      # The key changes whenever the pinned model checksum does.
-      - uses: actions/cache@v4
+      # The three models are about 265 MB together, so they are built once and cached.
+      # The key changes whenever a pinned model or the export script does.
+      - id: models
+        uses: actions/cache@v4
         with:
           path: backend/models
-          key: pothole-model-${{ hashFiles('backend/app/detection/model_store.py') }}
-      - run: python -m app.detection.model_store
+          key: models-${{ hashFiles('backend/app/detection/model_store.py', 'backend/tools/export_models.py', 'backend/requirements-export.txt') }}
+      # Converting the crack and streetlight models needs PyTorch. It goes in its own
+      # virtualenv so the tests below run with only the app's requirements.
+      - if: steps.models.outputs.cache-hit != 'true'
+        run: |
+          python -m venv /tmp/export
+          /tmp/export/bin/pip install -r requirements-export.txt
+          /tmp/export/bin/python -m tools.export_models
+          python -m app.detection.model_store
       - run: pytest -q
   frontend:
     runs-on: ubuntu-latest
