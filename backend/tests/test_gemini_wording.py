@@ -1,16 +1,16 @@
 from types import SimpleNamespace
 
 from app.detection.detector import Detection, DetectionResult
-from app.detection.severity import assess
+from app.detection.issues import find_issues
 from app.models.schemas import ReportWording
 from app.services import gemini_service
 from app.services.report_service import build_report
 
 
 def detector_report():
-    detections = [Detection(label="pothole", confidence=0.88, x1=0.2, y1=0.3, x2=0.6, y2=0.7)]
+    detections = [Detection(label="pothole", category="pothole", confidence=0.88, x1=0.2, y1=0.3, x2=0.6, y2=0.7)]
     result = DetectionResult(detections=detections, image_width=640, image_height=480)
-    return build_report(result, assess(detections), "Main Road", None)
+    return build_report(result, find_issues(detections), "Main Road", None)
 
 
 class FakeClient:
@@ -50,7 +50,7 @@ def test_gemini_rewords_text_but_keeps_the_detector_facts(monkeypatch) -> None:
     assert reworded.analysis_source == "detector+gemini"
     assert reworded.summary == "Reworded summary"
     assert reworded.municipal_report.title == "Reworded title"
-    for field in ("issue_type", "severity", "confidence", "pothole_count", "coverage", "detections", "responsible_department"):
+    for field in ("issue_type", "severity", "confidence", "pothole_count", "coverage", "detections", "issues", "responsible_department"):
         assert getattr(reworded, field) == getattr(original, field)
     assert reworded.municipal_report.priority == original.municipal_report.priority
     assert reworded.municipal_report.location == "Main Road"
