@@ -197,8 +197,9 @@ class CrackRunner(_Runner):
 
 class StreetlightRunner(_Runner):
     spec = STREETLIGHT_MODEL
-    # ORT_ENABLE_ALL's layout rewrites change this graph's results; see tools/export_models.py.
-    opt_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
+    # ONNX Runtime's extended and full optimisations change this graph's results on
+    # some CPUs (a 0.7 logit gap on one CI runner), so it only gets the basic ones.
+    opt_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
     class_id = 12  # "Street Lights" in the Objects365 label map
 
     def detect(self, image: Image.Image) -> list[Detection]:

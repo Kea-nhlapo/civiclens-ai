@@ -92,9 +92,9 @@ def export_streetlight_model() -> None:
         opset_version=17,
         dynamo=False,
     )
-    # ORT_ENABLE_ALL's layout rewrites change this graph's results, so the app and
-    # this check both run it at the extended level.
-    check_parity(spec.model_id, target, wrapped, "pixel_values", spec.input_size, ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED)
+    # The extended and full optimisation levels change this graph's results on some
+    # CPUs, so the app and this check both run it at the basic level.
+    check_parity(spec.model_id, target, wrapped, "pixel_values", spec.input_size, ort.GraphOptimizationLevel.ORT_ENABLE_BASIC)
 
 
 def export_dumping_model() -> None:
