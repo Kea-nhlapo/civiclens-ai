@@ -198,12 +198,21 @@ GitHub Actions runs everything on every push. It converts the models once and ca
 
 ## Hosting
 
-The backend needs a host that runs Docker with about 1 GB of memory. Serverless functions are a poor fit for 265 MB of models. The plan:
+The backend needs a host that runs Docker with about 1 GB of memory. Serverless functions are a poor fit for 265 MB of models, so:
 
-- **Backend:** a free Hugging Face Space using the Docker SDK, built from `backend/Dockerfile`.
-- **Frontend:** Vercel or Netlify, with `VITE_API_BASE_URL` set to the Space's URL.
+- **Backend:** a free Hugging Face Space using the Docker SDK. `.github/workflows/deploy-backend.yml` uploads `backend/` to the Space whenever the default branch changes, and the Space builds `backend/Dockerfile`, model conversion included.
+- **Frontend:** Vercel (or Netlify), built from `frontend/`. `frontend/.env.production` points it at the Space, so no environment variable is needed in Vercel.
 
-A free Space goes to sleep when nobody uses it for a while, so the first request after a quiet spell takes longer.
+To switch the deployment on, add two things under the repo's **Settings → Secrets and variables → Actions**:
+
+| Kind | Name | Value |
+| --- | --- | --- |
+| Secret | `HF_TOKEN` | A Hugging Face access token with write access |
+| Variable | `HF_SPACE` | The Space id, e.g. `Kea-nhlapo/civiclens-api` |
+
+Until both exist, the deploy job notes that they're missing and stops without failing. If the Space id isn't `Kea-nhlapo/civiclens-api`, update `VITE_API_BASE_URL` in `frontend/.env.production` to `https://<owner>-<space-name>.hf.space`.
+
+A free Space goes to sleep when nobody uses it for a while, so the first request after a quiet spell takes longer while it wakes up.
 
 ## Limitations
 
