@@ -29,6 +29,10 @@ ACTIONS: dict[str, dict[Severity, str]] = {
     "streetlight": {
         "Medium": "Send a lighting technician to check the lamp, its wiring and its supply.",
     },
+    "dumping": {
+        "High": "Send a removal team with a truck, and consider signage or monitoring to stop repeat dumping.",
+        "Medium": "Schedule the waste for collection and check the site for repeat dumping.",
+    },
 }
 
 
@@ -41,6 +45,8 @@ def _what(issue: Issue) -> str:
         return "a pothole" if issue.count == 1 else f"{issue.count} potholes"
     if issue.category == "crack":
         return "road cracking"
+    if issue.category == "dumping":
+        return "illegally dumped waste"
     return "a streetlight that is not working"
 
 
@@ -75,15 +81,15 @@ def _no_issue_report(result: DetectionResult, place: str, note: str, shared: dic
         severity="Low",
         confidence=0.0,
         summary=(
-            "No potholes or road cracks were detected in this photo." + seen + " CivicLens can't detect "
-            "other problems, such as blocked drains or illegal dumping, yet."
+            "No potholes, road cracks or dumped waste were detected in this photo." + seen + " CivicLens can't detect "
+            "other problems, such as blocked drains, yet."
         ),
         responsible_department=NO_DEPARTMENT,
         recommended_action="If there is road damage, retake the photo closer to it, in daylight, with the road surface filling most of the frame.",
         municipal_report=MunicipalReport(
             title="No issue detected",
             description=(
-                "The detectors did not find road damage in the attached photo, so no report has been drafted. "
+                "The detectors did not find road damage or dumped waste in the attached photo, so no report has been drafted. "
                 "If you can see a problem, retake the photo and try again."
             ),
             location=place,

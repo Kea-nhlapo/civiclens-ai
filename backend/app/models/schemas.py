@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 Severity = Literal["Low", "Medium", "High", "Critical"]
 AnalysisSource = Literal["detector", "detector+gemini"]
+Category = Literal["pothole", "crack", "streetlight", "dumping"]
 
 
 class MunicipalReport(BaseModel):
@@ -18,7 +19,7 @@ class MunicipalReport(BaseModel):
 
 class DetectionBox(BaseModel):
     label: str
-    category: Literal["pothole", "crack", "streetlight"]
+    category: Category
     confidence: float = Field(ge=0, le=1)
     # Corners as fractions of the image width and height, so the frontend can draw
     # them over the photo at any display size.
@@ -29,7 +30,7 @@ class DetectionBox(BaseModel):
 
 
 class IssueSummary(BaseModel):
-    category: Literal["pothole", "crack", "streetlight"]
+    category: Category
     issue_type: str
     department: str
     severity: Severity

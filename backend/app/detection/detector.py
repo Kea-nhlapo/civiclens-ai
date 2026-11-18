@@ -1,4 +1,4 @@
-"""Find potholes, road cracks and streetlights in a photo with three open models.
+"""Find potholes, road cracks, streetlights and dumped rubbish in a photo with four open models.
 
 Every model runs on ONNX Runtime on the CPU and is loaded the first time it is
 needed. Each one has its own input size and output format, so each gets a small
@@ -12,9 +12,15 @@ runner that turns its raw output into the same Detection type:
   come out as normalised centre/size and scores as logits.
 - Streetlights: D-FINE Small trained on Objects365, exported the same way. Input is
   640x640 RGB scaled to 0-1; only the "Street Lights" class is kept.
+- Dumping: OWLv2, an open-vocabulary detector, with the text prompts in
+  model_store baked in at export time. The photo is padded to a grey square, resized
+  to 672x672 and normalised with CLIP's mean/std; boxes come back relative to that
+  square. A box's score is its best match across the prompts.
 
 DETR-style models need no non-maximum suppression, but they can box the same thing
-twice, so a box mostly inside a stronger box of the same label is dropped.
+twice, so a box mostly inside a stronger box of the same label is dropped. OWLv2 is
+not DETR-style: neighbouring patches often box the same pile, so its boxes also go
+through ordinary non-maximum suppression.
 """
 
 import os
@@ -26,12 +32,16 @@ import numpy as np
 import onnxruntime as ort
 from PIL import Image, ImageOps
 
-from app.detection.model_store import CRACK_MODEL, POTHOLE_MODEL, STREETLIGHT_MODEL, ModelSpec, ensure_model
+from app.detection.model_store import CRACK_MODEL, DUMPING_MODEL, POTHOLE_MODEL, STREETLIGHT_MODEL, ModelSpec, ensure_model
 
 # Drop a box when this much of it lies inside a higher-scoring box of the same label.
 CONTAINED_FRACTION = 0.8
 IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+CLIP_MEAN = np.array([0.48145466, 0.4578275, 0.40821073], dtype=np.float32)
+CLIP_STD = np.array([0.26862954, 0.26130258, 0.27577711], dtype=np.float32)
+# Two dumping boxes overlapping more than this (intersection over union) count as one.
+NMS_IOU = 0.3
 CRACK_LABELS = ("longitudinal_crack", "transverse_crack", "alligator_crack")
 
 
@@ -110,6 +120,23 @@ def _overlap(inner: Detection, outer: Detection) -> float:
     return width * height / inner.area
 
 
+def iou(a: Detection, b: Detection) -> float:
+    width = min(a.x2, b.x2) - max(a.x1, b.x1)
+    height = min(a.y2, b.y2) - max(a.y1, b.y1)
+    if width <= 0 or height <= 0:
+        return 0.0
+    overlap = width * height
+    return overlap / (a.area + b.area - overlap)
+
+
+def non_max_suppression(detections: list[Detection], threshold: float = NMS_IOU) -> list[Detection]:
+    kept: list[Detection] = []
+    for candidate in sorted(detections, key=lambda d: d.confidence, reverse=True):
+        if all(iou(candidate, existing) <= threshold for existing in kept):
+            kept.append(candidate)
+    return kept
+
+
 def drop_contained(detections: list[Detection]) -> list[Detection]:
     kept: list[Detection] = []
     for candidate in sorted(detections, key=lambda d: d.confidence, reverse=True):
@@ -182,9 +209,33 @@ class StreetlightRunner(_Runner):
         return [_from_centre("streetlight", "streetlight", s, *b) for s, b in zip(scores, boxes[0]) if s >= cutoff]
 
 
+class DumpingRunner(_Runner):
+    spec = DUMPING_MODEL
+
+    def detect(self, image: Image.Image) -> list[Detection]:
+        size, cutoff = self.spec.input_size, threshold_for(self.spec)
+        width, height = image.size
+        side = max(width, height)
+        # OWLv2 expects a square: pad the right or bottom with grey rather than stretch.
+        square = Image.new("RGB", (side, side), (128, 128, 128))
+        square.paste(image, (0, 0))
+        pixels = np.asarray(square.resize((size, size), Image.BILINEAR), dtype=np.float32) / 255
+        batch = ((pixels - CLIP_MEAN) / CLIP_STD).transpose(2, 0, 1)[None].astype(np.float32)
+        logits, boxes = self.session().run(["logits", "pred_boxes"], {"pixel_values": batch})
+        scores = _sigmoid(logits[0]).max(axis=1)  # best prompt per box
+        # Boxes are relative to the padded square; rescale them to the photo itself.
+        sx, sy = side / width, side / height
+        found = [
+            _from_centre("dumping", "dumping", s, cx * sx, cy * sy, w * sx, h * sy)
+            for s, (cx, cy, w, h) in zip(scores, boxes[0])
+            if s >= cutoff
+        ]
+        return non_max_suppression(found)
+
+
 class Detector:
     def __init__(self) -> None:
-        self.runners: tuple[_Runner, ...] = (PotholeRunner(), CrackRunner(), StreetlightRunner())
+        self.runners: tuple[_Runner, ...] = (PotholeRunner(), CrackRunner(), StreetlightRunner(), DumpingRunner())
 
     def warm_up(self) -> None:
         for runner in self.runners:
