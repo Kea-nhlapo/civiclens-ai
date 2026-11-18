@@ -1,16 +1,16 @@
 """Where the three detection models come from, and how to get them onto disk.
 
-None of the model files are committed; together they are about 265 MB.
+None of the model files are committed; together they are about 625 MB.
 
 - The pothole model is published as ONNX. It is downloaded from a pinned Hugging
   Face revision and checked against the SHA-256 in that release's manifest.
-- The crack and streetlight models are published only as PyTorch checkpoints.
+- The crack, streetlight and dumping models are published only as PyTorch checkpoints.
   tools/export_models.py converts them to ONNX from pinned revisions and checks the
   result against PyTorch. The Docker build and CI run it; the app only loads the
   files it produced.
 
     python -m app.detection.model_store     # pothole model only
-    python -m tools.export_models           # crack and streetlight models
+    python -m tools.export_models           # crack, streetlight and dumping models
 """
 
 import hashlib
@@ -78,7 +78,26 @@ STREETLIGHT_MODEL = ModelSpec(
     threshold=0.50,
 )
 
-ALL_MODELS = (POTHOLE_MODEL, CRACK_MODEL, STREETLIGHT_MODEL)
+DUMPING_MODEL = ModelSpec(
+    model_id="owlv2_base_dumping_672",
+    repo="google/owlv2-base-patch16-ensemble",
+    revision="cfd3195ba4ea9592eec887ded089f4c08eff231d",
+    source_file="model.safetensors",
+    # OWLv2 is trained at 960x960, but that takes about 5 s per photo on a laptop
+    # CPU. At 672 it takes under 2 s and found the same dumping photos in testing.
+    input_size=672,
+    # Zero-shot: these text prompts are baked into the exported model.
+    classes=(
+        "a pile of rubbish",
+        "dumped garbage bags",
+        "illegal dumping of rubble",
+        "a pile of litter on the ground",
+        "an old mattress dumped on the street",
+    ),
+    threshold=0.33,
+)
+
+ALL_MODELS = (POTHOLE_MODEL, CRACK_MODEL, STREETLIGHT_MODEL, DUMPING_MODEL)
 
 
 def model_dir() -> Path:

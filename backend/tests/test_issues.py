@@ -2,8 +2,8 @@ import sys
 
 import numpy as np
 
-from app.detection.detector import Detection, drop_contained, resize_bilinear
-from app.detection.issues import crack_issue, find_issues, pothole_issue, streetlight_issue
+from app.detection.detector import Detection, drop_contained, non_max_suppression, resize_bilinear
+from app.detection.issues import crack_issue, dumping_issue, find_issues, pothole_issue, streetlight_issue
 
 
 def box(x1, y1, x2, y2, confidence=0.8, label="pothole", category="pothole") -> Detection:
@@ -101,6 +101,37 @@ def test_a_reported_fault_without_a_visible_light() -> None:
     assert "no streetlight was found" in result.reason
 
 
+# Dumping
+
+
+def pile(x1, y1, x2, y2, confidence=0.5) -> Detection:
+    return box(x1, y1, x2, y2, confidence, "dumping", "dumping")
+
+
+def test_any_dumping_is_at_least_medium() -> None:
+    result = dumping_issue([pile(0.4, 0.4, 0.5, 0.5)])
+    assert (result.severity, result.issue_type, result.department) == (
+        "Medium", "Illegal dumping", "Waste Management (Solid Waste)",
+    )
+
+
+def test_a_large_dump_is_high() -> None:
+    assert dumping_issue([pile(0.0, 0.3, 1.0, 0.8)]).severity == "High"  # 50%
+
+
+def test_three_separate_piles_are_high() -> None:
+    assert dumping_issue([pile(x, 0.5, x + 0.1, 0.6) for x in (0.1, 0.4, 0.7)]).severity == "High"
+
+
+def test_dumping_reason_warns_it_is_less_certain() -> None:
+    assert "less certain" in dumping_issue([pile(0.4, 0.4, 0.5, 0.5)]).reason
+
+
+def test_non_max_suppression_merges_overlapping_boxes() -> None:
+    strong, overlapping, separate = pile(0.1, 0.1, 0.5, 0.5, 0.9), pile(0.15, 0.1, 0.55, 0.5, 0.6), pile(0.7, 0.7, 0.9, 0.9, 0.5)
+    assert non_max_suppression([overlapping, separate, strong]) == [strong, separate]
+
+
 # Combining
 
 
@@ -110,8 +141,8 @@ def test_issues_are_sorted_most_severe_first() -> None:
 
 
 def test_ties_keep_potholes_first() -> None:
-    detections = [box(0.3, 0.3, 0.6, 0.5), crack(0.4, 0.4, 0.5, 0.5, "alligator_crack"), light()]
-    assert [i.category for i in find_issues(detections, streetlight_out=True)] == ["pothole", "crack", "streetlight"]
+    detections = [box(0.3, 0.3, 0.6, 0.5), crack(0.4, 0.4, 0.5, 0.5, "alligator_crack"), light(), pile(0.1, 0.1, 0.2, 0.2)]
+    assert [i.category for i in find_issues(detections, streetlight_out=True)] == ["pothole", "crack", "streetlight", "dumping"]
 
 
 def test_nothing_found_means_no_issues() -> None:
