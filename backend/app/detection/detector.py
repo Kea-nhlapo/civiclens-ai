@@ -165,6 +165,11 @@ class _Runner:
                     )
         return self._session
 
+    def prepare(self, image: Image.Image) -> np.ndarray:
+        """The model's input for this photo. tools/export_models.py uses the same
+        method, so the parity check sees exactly what the app feeds the model."""
+        raise NotImplementedError
+
     def detect(self, image: Image.Image) -> list[Detection]:
         raise NotImplementedError
 
@@ -182,11 +187,14 @@ class PotholeRunner(_Runner):
 class CrackRunner(_Runner):
     spec = CRACK_MODEL
 
-    def detect(self, image: Image.Image) -> list[Detection]:
-        size, cutoff = self.spec.input_size, threshold_for(self.spec)
+    def prepare(self, image: Image.Image) -> np.ndarray:
+        size = self.spec.input_size
         pixels = resize_bilinear(np.asarray(image, dtype=np.float32) / 255, size, size)
-        batch = ((pixels - IMAGENET_MEAN) / IMAGENET_STD).transpose(2, 0, 1)[None].astype(np.float32)
-        boxes, logits = self.session().run(["dets", "labels"], {"input": batch})
+        return ((pixels - IMAGENET_MEAN) / IMAGENET_STD).transpose(2, 0, 1)[None].astype(np.float32)
+
+    def detect(self, image: Image.Image) -> list[Detection]:
+        cutoff = threshold_for(self.spec)
+        boxes, logits = self.session().run(["dets", "labels"], {"input": self.prepare(image)})
         scores = _sigmoid(logits[0])  # [queries, classes + 1]
         found = []
         for query, class_id in zip(*np.nonzero(scores >= cutoff)):
@@ -197,15 +205,19 @@ class CrackRunner(_Runner):
 
 class StreetlightRunner(_Runner):
     spec = STREETLIGHT_MODEL
-    # ONNX Runtime's extended and full optimisations change this graph's results on
-    # some CPUs (a 0.7 logit gap on one CI runner), so it only gets the basic ones.
+    # ORT_ENABLE_ALL changes this graph's results on real photos (one streetlight
+    # scored 0.82 instead of PyTorch's 0.39), so it only gets the basic optimisations.
     opt_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
     class_id = 12  # "Street Lights" in the Objects365 label map
 
-    def detect(self, image: Image.Image) -> list[Detection]:
-        size, cutoff = self.spec.input_size, threshold_for(self.spec)
+    def prepare(self, image: Image.Image) -> np.ndarray:
+        size = self.spec.input_size
         pixels = np.asarray(image.resize((size, size), Image.BILINEAR), dtype=np.float32) / 255
-        logits, boxes = self.session().run(["logits", "pred_boxes"], {"pixel_values": pixels.transpose(2, 0, 1)[None]})
+        return pixels.transpose(2, 0, 1)[None]
+
+    def detect(self, image: Image.Image) -> list[Detection]:
+        cutoff = threshold_for(self.spec)
+        logits, boxes = self.session().run(["logits", "pred_boxes"], {"pixel_values": self.prepare(image)})
         scores = _sigmoid(logits[0][:, self.class_id])
         return [_from_centre("streetlight", "streetlight", s, *b) for s, b in zip(scores, boxes[0]) if s >= cutoff]
 
@@ -213,16 +225,20 @@ class StreetlightRunner(_Runner):
 class DumpingRunner(_Runner):
     spec = DUMPING_MODEL
 
-    def detect(self, image: Image.Image) -> list[Detection]:
-        size, cutoff = self.spec.input_size, threshold_for(self.spec)
-        width, height = image.size
-        side = max(width, height)
+    def prepare(self, image: Image.Image) -> np.ndarray:
+        size = self.spec.input_size
+        side = max(image.size)
         # OWLv2 expects a square: pad the right or bottom with grey rather than stretch.
         square = Image.new("RGB", (side, side), (128, 128, 128))
         square.paste(image, (0, 0))
         pixels = np.asarray(square.resize((size, size), Image.BILINEAR), dtype=np.float32) / 255
-        batch = ((pixels - CLIP_MEAN) / CLIP_STD).transpose(2, 0, 1)[None].astype(np.float32)
-        logits, boxes = self.session().run(["logits", "pred_boxes"], {"pixel_values": batch})
+        return ((pixels - CLIP_MEAN) / CLIP_STD).transpose(2, 0, 1)[None].astype(np.float32)
+
+    def detect(self, image: Image.Image) -> list[Detection]:
+        cutoff = threshold_for(self.spec)
+        width, height = image.size
+        side = max(width, height)
+        logits, boxes = self.session().run(["logits", "pred_boxes"], {"pixel_values": self.prepare(image)})
         scores = _sigmoid(logits[0]).max(axis=1)  # best prompt per box
         # Boxes are relative to the padded square; rescale them to the photo itself.
         sx, sy = side / width, side / height

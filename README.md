@@ -95,9 +95,9 @@ Thanks to Infra Intelligence, dronefreak (DetectionBench), the D-FINE authors an
 None of the model files are stored in this repo.
 
 - **Potholes:** the publisher's own ONNX file is downloaded from a pinned revision on Hugging Face and checked against the SHA-256 in its release manifest.
-- **Cracks, streetlights and dumping:** these are only published as PyTorch checkpoints. `backend/tools/export_models.py` downloads them from pinned revisions, converts them to ONNX, and refuses to save the file unless ONNX Runtime gives the same output as PyTorch on the same input. PyTorch is only needed for that step. The Docker image does it in a separate build stage, so the running app installs nothing heavier than ONNX Runtime.
+- **Cracks, streetlights and dumping:** these are only published as PyTorch checkpoints. `backend/tools/export_models.py` downloads them from pinned revisions, converts them to ONNX, and fails unless ONNX Runtime finds the same things as PyTorch, in the same places with nearly the same scores, in a real road photo (`backend/tools/parity/`, all CC0). PyTorch is only needed for that step. The Docker image does it in a separate build stage, so the running app installs nothing heavier than ONNX Runtime.
 
-The D-FINE graph gives wrong results under ONNX Runtime's higher optimisation levels on some CPUs, so the app runs it with basic optimisations only. The export check uses the same setting.
+ONNX Runtime's most aggressive optimisations change the D-FINE graph's results on real photos (one streetlight scored 0.82 instead of 0.39), so the app runs it with basic optimisations only, and the export check uses the same setting.
 
 For OWLv2, the five text prompts are turned into embeddings once during export and stored in the ONNX file, so the text half of the model never runs at request time. OWLv2 is trained at 960x960, but that took about 5 s per photo on a laptop. CivicLens runs it at 672x672 (about 2.5 s), which found the same dumping photos in testing. 576 was faster still but flagged a clean roundabout as dumping. Squeezing the model to 8-bit made it no faster and moved the boxes, so it stays at full precision.
 
