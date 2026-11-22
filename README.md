@@ -6,7 +6,7 @@ The detection is real: four open-source object detection models run on every upl
 
 > CivicLens never submits anything. Every report is a draft for you to check and send through your municipality's official channel.
 
-**Live demo:** the deployed site shows sample results from the real models, run ahead of time (see [Hosting](#hosting)). [Run it locally](#run-it-locally) to check your own photos.
+**[Live demo](https://civiclens-ai-m91u.vercel.app):** the deployed site shows sample results from the real models, run ahead of time (see [Hosting](#hosting)). [Run it locally](#run-it-locally) to check your own photos.
 
 ## What it can and can't detect
 
