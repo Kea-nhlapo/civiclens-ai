@@ -6,7 +6,7 @@ The detection is real. Four open-source object detection models run on every pho
 
 CivicLens doesn't send anything anywhere. You check the report and send it through your municipality's own channel.
 
-**[Live site](https://civiclens-ai-m91u.vercel.app):** it runs in demo mode, with six sample photos and the real models' results for each one, saved ahead of time. See [Hosting](#hosting) for why. To try your own photos, [run it locally](#run-it-locally).
+**[Live site](https://civiclens-ai-m91u.vercel.app):** upload your own photo and the real models check it. The backend runs on Google Cloud Run, see [Hosting](#hosting).
 
 ## What it detects
 
@@ -124,9 +124,9 @@ React + Vite + TypeScript              FastAPI + Pydantic
 | `backend/app/detection/model_store.py` | Pinned model sources, download and checksum |
 | `backend/app/services/report_service.py` | Writes the report from the issues |
 | `backend/tools/export_models.py` | Converts the crack, streetlight and dumping models to ONNX and checks them |
-| `backend/tools/make_demo_samples.py` | Runs the real backend on the sample photos and saves the results for demo mode |
+| `backend/tools/make_demo_samples.py` | Runs the real backend on the sample photos and saves the results the site falls back on |
 | `frontend/src/components/DetectionView.tsx` | Draws the labelled boxes over the photo |
-| `frontend/src/components/SamplePicker.tsx` | The "Try a sample photo" picker used in demo mode |
+| `frontend/src/components/SamplePicker.tsx` | The "Try a sample photo" picker, shown when the backend can't be reached |
 
 ## Run it locally
 
@@ -180,7 +180,7 @@ curl -X POST http://localhost:8080/api/analyze-report \
 | Backend | `CIVICLENS_THRESHOLD_<MODEL_ID>` | see the table above | Overrides a model's threshold, e.g. `CIVICLENS_THRESHOLD_DFINE_SMALL_OBJ365=0.6` |
 | Backend | `PORT` | `8080` | HTTP port |
 | Frontend | `VITE_API_BASE_URL` | `http://localhost:8080` | Backend URL, set before building |
-| Frontend | `VITE_DEMO_MODE` | `false` (`true` in `.env.production`) | Shows only the saved sample results and never calls a backend |
+| Frontend | `VITE_DEMO_MODE` | `false` | Set to `true` for a sample-only build that never calls a backend |
 
 ## Tests
 
@@ -198,11 +198,14 @@ GitHub Actions runs all of it on every push. It converts the models once and cac
 
 ## Hosting
 
-The live site is the frontend only, in demo mode. Hosting 625 MB of models on a CPU server costs money, so for now the site offers six sample photos: potholes, road cracks, a streetlight reported as not working, illegal dumping, a clean street, and a pothole inside cracking. Each result is the real backend's output for that photo, saved by `backend/tools/make_demo_samples.py` and shown through the same boxes and report as a live result. If you upload your own photo on the live site, it tells you that real detection needs the backend.
+- **Frontend:** Vercel, built from `frontend/`.
+- **Backend:** Google Cloud Run, from `backend/Dockerfile`. The Dockerfile builds the models in its first stage and the app listens on `PORT` (8080 by default). It needs about 2 to 3 GB of memory for the four models. `frontend/.env.production` points the site at it with `VITE_API_BASE_URL`.
 
-- `frontend/.env.production` sets `VITE_DEMO_MODE=true`. To point a build at a running backend, set it to `false` and set `VITE_API_BASE_URL` to the backend's URL.
-- The backend runs anywhere that takes a Docker image and gives it about 2 to 3 GB of memory. `backend/Dockerfile` builds the models in its first stage and listens on `PORT` (8080 by default).
-- `.github/workflows/deploy-backend.yml` can push `backend/` to a Hugging Face Docker Space. It only runs when the repo variable `DEPLOY_BACKEND` is `true`, and Docker Spaces now need a paid plan, so it's switched off.
+Cloud Run shuts the backend down when nobody's using it, so the first photo after a quiet spell takes about 20 seconds while it starts and loads the models. After that a photo takes a few seconds.
+
+If the backend can't be reached, the site offers six sample photos instead: potholes, road cracks, a streetlight reported as not working, illegal dumping, a clean street, and a pothole inside cracking. Each result is the real backend's output for that photo, saved by `backend/tools/make_demo_samples.py`. For a build that only shows the samples, set `VITE_DEMO_MODE=true`.
+
+`.github/workflows/deploy-backend.yml` can also push `backend/` to a Hugging Face Docker Space. It only runs when the repo variable `DEPLOY_BACKEND` is `true`, and Docker Spaces now need a paid plan, so it's switched off.
 
 ## Limitations
 
