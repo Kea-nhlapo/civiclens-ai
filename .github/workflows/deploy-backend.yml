@@ -12,7 +12,7 @@ name: Deploy backend to Hugging Face
 # Without DEPLOY_BACKEND=true the job is skipped, so pushes stay green.
 on:
   push:
-    branches: [feature/civiclens-ai-mvp, main]
+    branches: [main]
     paths:
       - "backend/**"
       - ".github/workflows/deploy-backend.yml"
