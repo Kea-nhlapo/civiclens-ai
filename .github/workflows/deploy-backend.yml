@@ -1,0 +1,94 @@
+name: Deploy backend to Hugging Face
+
+# Pushes backend/ to a Docker Space whenever the default branch changes. The Space
+# builds backend/Dockerfile itself, including the model conversion stage.
+#
+# Needs, under Settings -> Secrets and variables -> Actions:
+#   secret   HF_TOKEN  a Hugging Face access token with write access to the Space
+#   variable HF_SPACE  the Space id, e.g. Kea-nhlapo/civiclens-api
+# Until both exist the job says so and stops without failing.
+on:
+  push:
+    branches: [feature/civiclens-ai-mvp, main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE: ${{ vars.HF_SPACE }}
+    steps:
+      - name: Check the Space settings
+        id: settings
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE" ]; then
+            echo "::notice::HF_TOKEN secret or HF_SPACE variable not set yet, so nothing was deployed."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.settings.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - if: steps.settings.outputs.ready == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Stage the Space files
+        if: steps.settings.outputs.ready == 'true'
+        run: |
+          mkdir space
+          cp -r backend/app backend/tools backend/Dockerfile backend/requirements.txt backend/requirements-export.txt space/
+          # A Space reads its settings from the front matter of its README.
+          cat > space/README.md <<'EOF'
+          ---
+          title: CivicLens API
+          emoji: 🛣️
+          colorFrom: blue
+          colorTo: green
+          sdk: docker
+          app_port: 8080
+          license: mit
+          short_description: Detects potholes, road cracks and streetlights in photos
+          ---
+
+          Backend for [CivicLens AI](https://github.com/Kea-nhlapo/civiclens-ai). This Space is
+          deployed automatically from the repository; edit the code there, not here.
+          EOF
+
+      - name: Upload to the Space
+        if: steps.settings.outputs.ready == 'true'
+        run: |
+          pip install --quiet huggingface_hub==2.4.0
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          space = os.environ["HF_SPACE"]
+          api.create_repo(space, repo_type="space", space_sdk="docker", exist_ok=True)
+          # delete_patterns removes files that no longer exist in the repo, so the
+          # Space always matches backend/ exactly.
+          api.upload_folder(
+              repo_id=space,
+              repo_type="space",
+              folder_path="space",
+              delete_patterns="*",
+              commit_message=f"Deploy {os.environ['GITHUB_SHA'][:7]}",
+          )
+          owner, name = space.split("/")
+          print(f"Deployed. The API will be at https://{owner.lower()}-{name.lower()}.hf.space once the Space finishes building.")
+          EOF
