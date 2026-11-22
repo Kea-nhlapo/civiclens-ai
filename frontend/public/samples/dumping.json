@@ -1,0 +1,58 @@
+{
+ "issue_type": "Illegal dumping",
+ "severity": "High",
+ "confidence": 0.53,
+ "summary": "The detector found illegally dumped waste with up to 53% confidence. Severity is High: 1 area of dumped waste covering 52% of the photo, which looks like a large dump that needs a removal team. This detector matches the photo against text descriptions, so it is less certain than the others; please check the photo.",
+ "responsible_department": "Waste Management (Solid Waste)",
+ "recommended_action": "Send a removal team with a truck, and consider signage or monitoring to stop repeat dumping.",
+ "municipal_report": {
+  "title": "High priority: illegal dumping reported",
+  "description": "A citizen photo shows illegally dumped waste at a location the citizen still needs to confirm. 1 area of dumped waste covering 52% of the photo, which looks like a large dump that needs a removal team. This detector matches the photo against text descriptions, so it is less certain than the others; please check the photo. Please inspect the site. This draft was generated automatically and should be checked before it is submitted.",
+  "location": "Location to be confirmed by the citizen",
+  "evidence_notes": "Automated detection: illegally dumped waste, highest confidence 53%, covering about 52% of the photo.",
+  "priority": "High",
+  "suggested_department": "Waste Management (Solid Waste)"
+ },
+ "citizen_message": "Your draft report is ready. Check the location and details, then submit it to your municipality yourself.",
+ "next_steps": [
+  "Confirm the exact location",
+  "Attach the photo",
+  "Submit through your municipality's official channel",
+  "Keep the reference number you receive"
+ ],
+ "detections": [
+  {
+   "label": "dumping",
+   "category": "dumping",
+   "confidence": 0.5309,
+   "x1": 0.0,
+   "y1": 0.4818,
+   "x2": 1.0,
+   "y2": 1.0
+  }
+ ],
+ "issues": [
+  {
+   "category": "dumping",
+   "issue_type": "Illegal dumping",
+   "department": "Waste Management (Solid Waste)",
+   "severity": "High",
+   "confidence": 0.53,
+   "count": 1,
+   "coverage": 0.5182,
+   "reason": "1 area of dumped waste covering 52% of the photo, which looks like a large dump that needs a removal team. This detector matches the photo against text descriptions, so it is less certain than the others; please check the photo."
+  }
+ ],
+ "pothole_count": 0,
+ "coverage": 0.5182,
+ "severity_reason": "1 area of dumped waste covering 52% of the photo, which looks like a large dump that needs a removal team. This detector matches the photo against text descriptions, so it is less certain than the others; please check the photo.",
+ "image_width": 297,
+ "image_height": 640,
+ "models": [
+  "pothole_rfdetr_nano_v4_r1",
+  "rdd2022_rfdetr_small",
+  "dfine_small_obj365",
+  "owlv2_base_dumping_672"
+ ],
+ "analysis_source": "detector"
+}

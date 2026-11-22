@@ -1,0 +1,56 @@
+[
+ {
+  "id": "potholes",
+  "label": "Potholes",
+  "image": "/samples/potholes.jpg",
+  "result": "/samples/potholes.json",
+  "streetlightOut": false,
+  "source": "tests/samples/pothole-cluster.jpg",
+  "credit": "Bache grande 1 by Nalilanii, CC BY 4.0, https://commons.wikimedia.org/wiki/File:Bache_grande_1.jpg"
+ },
+ {
+  "id": "cracks",
+  "label": "Road cracks",
+  "image": "/samples/cracks.jpg",
+  "result": "/samples/cracks.json",
+  "streetlightOut": false,
+  "source": "tests/samples/crack-suburb.jpg",
+  "credit": "Franklin Farm Road by Famartin, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:2016-04-25_13_12_24_View_east_along_Franklin_Farm_Road_east_of_Old_Dairy_Road_just_before_shoulder_widening_and_repaving_begins_in_the_Franklin_Farm_section_of_Oak_Hill,_Fairfax_County,_Virginia.jpg"
+ },
+ {
+  "id": "streetlight",
+  "label": "Streetlight not working",
+  "image": "/samples/streetlight.jpg",
+  "result": "/samples/streetlight.json",
+  "streetlightOut": true,
+  "source": "tests/samples/streetlight-durban.jpg",
+  "credit": "M17 Springfield ^ Cowey Rds Durban by landagent, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File:M17_Springfield_%5E_Cowey_Rds_Durban_-_panoramio.jpg"
+ },
+ {
+  "id": "dumping",
+  "label": "Illegal dumping",
+  "image": "/samples/dumping.jpg",
+  "result": "/samples/dumping.json",
+  "streetlightOut": false,
+  "source": "tests/samples/dumping-site.jpg",
+  "credit": "Illegal Waste Disposal Site in Jabal Mukaber, CC0, https://commons.wikimedia.org/wiki/File:1_Illegal_Waste_Disposal_Site_in_Jerusalem%27s_Jabal_Mukaber_Neighborhood.jpg"
+ },
+ {
+  "id": "clean-street",
+  "label": "A clean street",
+  "image": "/samples/clean-street.jpg",
+  "result": "/samples/clean-street.json",
+  "streetlightOut": false,
+  "source": "tools/parity/streetlights.jpg",
+  "credit": "Approaching the OAU main gate roundabout by Eminence190, CC0, https://commons.wikimedia.org/wiki/File:Approaching_the_OAU_main_gate_roundabout_and_security_checkpoint_area.jpg"
+ },
+ {
+  "id": "mixed",
+  "label": "Pothole and cracks",
+  "image": "/samples/mixed.jpg",
+  "result": "/samples/mixed.json",
+  "streetlightOut": false,
+  "source": "tests/samples/pothole-single.jpg",
+  "credit": "Bache ENP1, CC0, https://commons.wikimedia.org/wiki/File:Bache_ENP1.jpg"
+ }
+]

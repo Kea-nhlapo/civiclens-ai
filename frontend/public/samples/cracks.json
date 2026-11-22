@@ -1,0 +1,58 @@
+{
+ "issue_type": "Road cracks",
+ "severity": "High",
+ "confidence": 0.92,
+ "summary": "The detector found road cracking with up to 92% confidence. Severity is High: 1 crack area (alligator (fatigue) cracking) covering 24% of the photo. Widespread alligator cracking usually means the road base is failing and potholes will follow. Coverage depends on how close the photo was taken, so an inspector should confirm the size.",
+ "responsible_department": "Roads and Stormwater",
+ "recommended_action": "Inspect the road base and plan resurfacing before the cracking turns into potholes.",
+ "municipal_report": {
+  "title": "High priority: road cracks reported",
+  "description": "A citizen photo shows road cracking at a location the citizen still needs to confirm. 1 crack area (alligator (fatigue) cracking) covering 24% of the photo. Widespread alligator cracking usually means the road base is failing and potholes will follow. Coverage depends on how close the photo was taken, so an inspector should confirm the size. Please inspect the site. This draft was generated automatically and should be checked before it is submitted.",
+  "location": "Location to be confirmed by the citizen",
+  "evidence_notes": "Automated detection: road cracking, highest confidence 92%, covering about 24% of the photo.",
+  "priority": "High",
+  "suggested_department": "Roads and Stormwater"
+ },
+ "citizen_message": "Your draft report is ready. Check the location and details, then submit it to your municipality yourself.",
+ "next_steps": [
+  "Confirm the exact location",
+  "Attach the photo",
+  "Submit through your municipality's official channel",
+  "Keep the reference number you receive"
+ ],
+ "detections": [
+  {
+   "label": "alligator_crack",
+   "category": "crack",
+   "confidence": 0.9245,
+   "x1": 0.0011,
+   "y1": 0.582,
+   "x2": 0.5891,
+   "y2": 0.9978
+  }
+ ],
+ "issues": [
+  {
+   "category": "crack",
+   "issue_type": "Road cracks",
+   "department": "Roads and Stormwater",
+   "severity": "High",
+   "confidence": 0.92,
+   "count": 1,
+   "coverage": 0.2445,
+   "reason": "1 crack area (alligator (fatigue) cracking) covering 24% of the photo. Widespread alligator cracking usually means the road base is failing and potholes will follow. Coverage depends on how close the photo was taken, so an inspector should confirm the size."
+  }
+ ],
+ "pothole_count": 0,
+ "coverage": 0.2445,
+ "severity_reason": "1 crack area (alligator (fatigue) cracking) covering 24% of the photo. Widespread alligator cracking usually means the road base is failing and potholes will follow. Coverage depends on how close the photo was taken, so an inspector should confirm the size.",
+ "image_width": 640,
+ "image_height": 480,
+ "models": [
+  "pothole_rfdetr_nano_v4_r1",
+  "rdd2022_rfdetr_small",
+  "dfine_small_obj365",
+  "owlv2_base_dumping_672"
+ ],
+ "analysis_source": "detector"
+}

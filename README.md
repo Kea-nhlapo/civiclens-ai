@@ -6,7 +6,7 @@ The detection is real: four open-source object detection models run on every upl
 
 > CivicLens never submits anything. Every report is a draft for you to check and send through your municipality's official channel.
 
-**Live demo:** _to be added once the backend is hosted (see [Hosting](#hosting))._
+**Live demo:** the deployed site shows sample results from the real models, run ahead of time (see [Hosting](#hosting)). [Run it locally](#run-it-locally) to check your own photos.
 
 ## What it can and can't detect
 
@@ -202,21 +202,15 @@ GitHub Actions runs everything on every push. It converts the models once and ca
 
 ## Hosting
 
-The backend needs a host that runs Docker with about 1 GB of memory. Serverless functions are a poor fit for 625 MB of models. The plan:
+The live site is a **demo**: it has no detection server running, because hosting 625 MB of models on a CPU host costs money. Instead it offers six sample photos (potholes, road cracks, a streetlight reported as not working, illegal dumping, a clean street, and a pothole inside cracking). Each result is the real backend's output for that photo, saved ahead of time by `backend/tools/make_demo_samples.py`, and shown through the same boxes, report and routing as a live result. `backend/tests/test_demo_samples.py` runs the models again and fails if a saved result no longer matches. Uploading your own photo on the live site explains that real detection needs the backend.
 
-- **Backend:** a free Hugging Face Space using the Docker SDK. `.github/workflows/deploy-backend.yml` uploads `backend/` to the Space whenever the default branch changes, and the Space builds `backend/Dockerfile`, model conversion included.
-- **Frontend:** Vercel (or Netlify), built from `frontend/`. `frontend/.env.production` points it at the Space, so no environment variable is needed in Vercel.
+For real detection on your own photos, [run it locally](#run-it-locally).
 
-To switch the deployment on, add two things under the repo's **Settings → Secrets and variables → Actions**:
+How it is wired:
 
-| Kind | Name | Value |
-| --- | --- | --- |
-| Secret | `HF_TOKEN` | A Hugging Face access token with write access |
-| Variable | `HF_SPACE` | The Space id, e.g. `Kea-nhlapo/civiclens-api` |
-
-Until both exist, the deploy job notes that they're missing and stops without failing. If the Space id isn't `Kea-nhlapo/civiclens-api`, update `VITE_API_BASE_URL` in `frontend/.env.production` to `https://<owner>-<space-name>.hf.space`.
-
-A free Space goes to sleep when nobody uses it for a while, so the first request after a quiet spell takes longer while it wakes up.
+- `frontend/.env.production` sets `VITE_DEMO_MODE=true`, so production builds never call a server. To point a build at a running backend, set `VITE_DEMO_MODE=false` and `VITE_API_BASE_URL` to its URL. Outside demo mode, the sample picker also appears whenever the server can't be reached.
+- `.github/workflows/deploy-backend.yml` can push `backend/` to a Hugging Face Docker Space, but it only runs when the repo variable `DEPLOY_BACKEND` is `true` (plus the `HF_TOKEN` secret and `HF_SPACE` variable). Docker Spaces now need Hugging Face PRO (about $9 a month), so it is switched off.
+- Options for hosting the backend later: Hugging Face PRO, or Azure for Students.
 
 ## Limitations
 

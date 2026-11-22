@@ -1,0 +1,85 @@
+{
+ "issue_type": "Potholes",
+ "severity": "High",
+ "confidence": 0.81,
+ "summary": "The detector found 4 potholes with up to 81% confidence. Severity is High: 4 potholes close together, covering 3% of the photo. Coverage depends on how close the photo was taken, so an inspector should confirm the size.",
+ "responsible_department": "Roads and Stormwater",
+ "recommended_action": "Inspect soon and schedule a repair. Mark the hazard if the repair cannot happen quickly.",
+ "municipal_report": {
+  "title": "High priority: potholes reported",
+  "description": "A citizen photo shows 4 potholes at a location the citizen still needs to confirm. 4 potholes close together, covering 3% of the photo. Coverage depends on how close the photo was taken, so an inspector should confirm the size. Please inspect the site. This draft was generated automatically and should be checked before it is submitted.",
+  "location": "Location to be confirmed by the citizen",
+  "evidence_notes": "Automated detection: 4 potholes, highest confidence 81%, covering about 3% of the photo.",
+  "priority": "High",
+  "suggested_department": "Roads and Stormwater"
+ },
+ "citizen_message": "Your draft report is ready. Check the location and details, then submit it to your municipality yourself.",
+ "next_steps": [
+  "Confirm the exact location",
+  "Attach the photo",
+  "Submit through your municipality's official channel",
+  "Keep the reference number you receive"
+ ],
+ "detections": [
+  {
+   "label": "pothole",
+   "category": "pothole",
+   "confidence": 0.8067,
+   "x1": 0.4097,
+   "y1": 0.6415,
+   "x2": 0.4915,
+   "y2": 0.7039
+  },
+  {
+   "label": "pothole",
+   "category": "pothole",
+   "confidence": 0.7268,
+   "x1": 0.5244,
+   "y1": 0.4524,
+   "x2": 0.6722,
+   "y2": 0.5653
+  },
+  {
+   "label": "pothole",
+   "category": "pothole",
+   "confidence": 0.6434,
+   "x1": 0.6453,
+   "y1": 0.6193,
+   "x2": 0.6903,
+   "y2": 0.6549
+  },
+  {
+   "label": "pothole",
+   "category": "pothole",
+   "confidence": 0.5268,
+   "x1": 0.5742,
+   "y1": 0.6164,
+   "x2": 0.6328,
+   "y2": 0.6595
+  }
+ ],
+ "issues": [
+  {
+   "category": "pothole",
+   "issue_type": "Potholes",
+   "department": "Roads and Stormwater",
+   "severity": "High",
+   "confidence": 0.81,
+   "count": 4,
+   "coverage": 0.0259,
+   "reason": "4 potholes close together, covering 3% of the photo. Coverage depends on how close the photo was taken, so an inspector should confirm the size."
+  }
+ ],
+ "pothole_count": 4,
+ "coverage": 0.0259,
+ "severity_reason": "4 potholes close together, covering 3% of the photo. Coverage depends on how close the photo was taken, so an inspector should confirm the size.",
+ "image_width": 480,
+ "image_height": 640,
+ "models": [
+  "pothole_rfdetr_nano_v4_r1",
+  "rdd2022_rfdetr_small",
+  "dfine_small_obj365",
+  "owlv2_base_dumping_672"
+ ],
+ "analysis_source": "detector"
+}
