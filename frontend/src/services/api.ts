@@ -1,7 +1,6 @@
 import type { CivicReport, DemoSample } from '../types/report';
 const API_BASE_URL=(import.meta.env.VITE_API_BASE_URL||(import.meta.env.DEV?'http://localhost:8080':'')).replace(/\/$/,'');
-// The live site has no detection server (hosting the models costs money), so it is built with VITE_DEMO_MODE=true
-// and shows saved results instead. Run the backend locally for real detection on your own photos.
+// Set VITE_DEMO_MODE=true only for a sample-only build without a live backend.
 export const DEMO_MODE=import.meta.env.VITE_DEMO_MODE==='true';
 export const RUN_LOCALLY_URL='https://github.com/Kea-nhlapo/civiclens-ai#run-it-locally';
 export class BackendUnavailable extends Error{}
