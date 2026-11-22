@@ -5,7 +5,7 @@ name: Deploy backend to Hugging Face
 #
 # Needs, under Settings -> Secrets and variables -> Actions:
 #   secret   HF_TOKEN  a Hugging Face access token with write access to the Space
-#   variable HF_SPACE  the Space id, e.g. Kea-nhlapo/civiclens-api
+#   variable HF_SPACE  the Space id, e.g. KeaTheDingo/civiclens-api
 # Until both exist the job says so and stops without failing.
 on:
   push:

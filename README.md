@@ -208,9 +208,9 @@ To switch the deployment on, add two things under the repo's **Settings → Secr
 | Kind | Name | Value |
 | --- | --- | --- |
 | Secret | `HF_TOKEN` | A Hugging Face access token with write access |
-| Variable | `HF_SPACE` | The Space id, e.g. `Kea-nhlapo/civiclens-api` |
+| Variable | `HF_SPACE` | The Space id, e.g. `KeaTheDingo/civiclens-api` |
 
-Until both exist, the deploy job notes that they're missing and stops without failing. If the Space id isn't `Kea-nhlapo/civiclens-api`, update `VITE_API_BASE_URL` in `frontend/.env.production` to `https://<owner>-<space-name>.hf.space`.
+Until both exist, the deploy job notes that they're missing and stops without failing. If the Space id isn't `KeaTheDingo/civiclens-api`, update `VITE_API_BASE_URL` in `frontend/.env.production` to `https://<owner>-<space-name>.hf.space`.
 
 A free Space goes to sleep when nobody uses it for a while, so the first request after a quiet spell takes longer while it wakes up.
 
