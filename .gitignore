@@ -12,3 +12,5 @@ frontend/vite.config.d.ts
 .vercel
 .env*
 models/*.onnx
+# The production API URL is public, not a secret, so this one env file is committed.
+!frontend/.env.production
