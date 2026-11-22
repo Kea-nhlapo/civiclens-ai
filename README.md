@@ -1,12 +1,12 @@
 # CivicLens AI
 
-Take a photo of a problem on your street and CivicLens finds it, rates how serious it looks, and drafts a report for the right municipal department. It detects **potholes**, **road cracks** and **streetlights**.
+Take a photo of a problem on your street and CivicLens finds it, rates how serious it looks, and drafts a report for the right municipal department. It detects **potholes**, **road cracks**, **streetlights** and **illegal dumping**.
 
-The detection is real: three open-source object detection models run on every upload and return what they find, with boxes and confidence scores. Severity and the report are built from those detections. Gemini can optionally polish the wording, but it never decides what's in the photo.
+The detection is real: four open-source object detection models run on every upload and return what they find, with boxes and confidence scores. Severity and the report are built from those detections.
 
 > CivicLens never submits anything. Every report is a draft for you to check and send through your municipality's official channel.
 
-**Live demo:** _to be added once the backend is hosted (see [Hosting](#hosting))._
+**Live demo:** the deployed site shows sample results from the real models, run ahead of time (see [Hosting](#hosting)). [Run it locally](#run-it-locally) to check your own photos.
 
 ## What it can and can't detect
 
@@ -15,14 +15,14 @@ The detection is real: three open-source object detection models run on every up
 | Potholes | Finds each pothole and rates severity from how many there are and how much of the photo they cover | Roads and Stormwater |
 | Road cracks | Finds lengthwise, crosswise and alligator (fatigue) cracking. Alligator cracking ranks higher because it means the road base is failing | Roads and Stormwater |
 | Streetlights not working | Finds streetlights in the photo. A photo can't show whether a light works, so **you tick "This streetlight is not working"** and the detector confirms there is a light in the picture | Electricity (public lighting) |
-| Illegal dumping | Not yet. There's no openly licensed model for it, see [Limitations](#limitations) | |
+| Illegal dumping | Finds dumped rubbish, bags, rubble and old furniture using an open-vocabulary model that matches the photo against text descriptions. Less certain than the others, see [Limitations](#limitations) | Waste Management (Solid Waste) |
 
 A photo can show more than one problem. Each one becomes its own issue, the most severe leads the report, and the rest are listed with it.
 
 ## How it works
 
 1. You upload a photo, with an optional location, a note, and the streetlight tick box.
-2. The backend runs three models with ONNX Runtime on the CPU. Each returns boxes with a confidence score, and anything under that model's threshold is ignored. If a model boxes the same thing twice, the weaker box is dropped.
+2. The backend runs four models with ONNX Runtime on the CPU. Each returns boxes with a confidence score, and anything under that model's threshold is ignored. If a model boxes the same thing twice, the weaker box is dropped.
 3. Each kind of problem gets its own severity rule:
 
    **Potholes**
@@ -44,8 +44,10 @@ A photo can show more than one problem. Each one becomes its own issue, the most
 
    **Streetlights:** Medium when you report the light as not working.
 
-4. The report is written from those numbers and addressed to the department for the most severe issue. If `GEMINI_API_KEY` is set, Gemini rewrites the text more naturally. It can't change what was found, the severities, the confidences or the boxes, and if the call fails the detectors' own wording is used.
-5. The frontend draws the boxes over your photo, coloured by type: red for potholes, amber for cracks, blue for streetlights.
+   **Illegal dumping:** Medium for any dumping, because it attracts more dumping and can block pavements and drains. High when it covers 40% or more of the photo or there are 3 or more separate piles.
+
+4. The report is written from those numbers and addressed to the department for the most severe issue.
+5. The frontend draws the boxes over your photo, coloured by type: red for potholes, amber for cracks, blue for streetlights, violet for dumping.
 
 Part of a real response (a small pothole inside a wide patch of alligator cracking):
 
@@ -63,7 +65,7 @@ Part of a real response (a small pothole inside a wide patch of alligator cracki
     { "label": "alligator_crack", "category": "crack", "confidence": 0.5325, "x1": 0.5636, "y1": 0.1481, "x2": 0.9962, "y2": 0.5008 },
     { "label": "alligator_crack", "category": "crack", "confidence": 0.4171, "x1": 0.0104, "y1": 0.1675, "x2": 0.9973, "y2": 0.5755 }
   ],
-  "models": ["pothole_rfdetr_nano_v4_r1", "rdd2022_rfdetr_small", "dfine_small_obj365"]
+  "models": ["pothole_rfdetr_nano_v4_r1", "rdd2022_rfdetr_small", "dfine_small_obj365", "owlv2_base_dumping_672"]
 }
 ```
 
@@ -71,31 +73,33 @@ Box corners are fractions of the image size, so they can be drawn at any display
 
 ## The models
 
-| | Potholes | Road cracks | Streetlights |
-| --- | --- | --- | --- |
-| Model | [infra-intelligence/pothole-rfdetr-nano](https://huggingface.co/infra-intelligence/pothole-rfdetr-nano) v4 | [dronefreak/rdd2022-rfdetr-small](https://huggingface.co/dronefreak/rdd2022-rfdetr-small) | [ustc-community/dfine-small-obj365](https://huggingface.co/ustc-community/dfine-small-obj365) |
-| Architecture | [RF-DETR](https://github.com/roboflow/rf-detr) Nano | RF-DETR Small | [D-FINE](https://github.com/Peterande/D-FINE) Small |
-| Weights licence | Apache-2.0 | Apache-2.0 | Apache-2.0 |
-| Training data | Pothole photos from [RDD2022](https://doi.org/10.6084/m9.figshare.21431547.v1) (CC BY 4.0) and the [Hazels Space dataset](https://universe.roboflow.com/hazels-space/road-damage-manhole-sewer-covers) (CC BY 4.0) | [RDD2022](https://huggingface.co/datasets/dronefreak/RDD2022), road photos from six countries (CC BY-SA 4.0) | [Objects365](https://www.objects365.org/), a general dataset of 365 everyday object types. Only its "Street Lights" class is used |
-| Reported accuracy | AP50 0.70; false alarms on 2% of 300 pothole-free photos | mAP50 58 to 67% per crack type | Not measured for streetlights alone |
-| Input size | 384x384 | 512x512 | 640x640 |
-| ONNX file | 108 MB | 114 MB | 42 MB |
-| Threshold | 0.45 (the publisher's) | 0.35 | 0.50 |
+| | Potholes | Road cracks | Streetlights | Illegal dumping |
+| --- | --- | --- | --- | --- |
+| Model | [infra-intelligence/pothole-rfdetr-nano](https://huggingface.co/infra-intelligence/pothole-rfdetr-nano) v4 | [dronefreak/rdd2022-rfdetr-small](https://huggingface.co/dronefreak/rdd2022-rfdetr-small) | [ustc-community/dfine-small-obj365](https://huggingface.co/ustc-community/dfine-small-obj365) | [google/owlv2-base-patch16-ensemble](https://huggingface.co/google/owlv2-base-patch16-ensemble) |
+| Architecture | [RF-DETR](https://github.com/roboflow/rf-detr) Nano | RF-DETR Small | [D-FINE](https://github.com/Peterande/D-FINE) Small | [OWLv2](https://arxiv.org/abs/2306.09683) Base, open-vocabulary (zero-shot) |
+| Weights licence | Apache-2.0 | Apache-2.0 | Apache-2.0 | Apache-2.0 |
+| Training data | Pothole photos from [RDD2022](https://doi.org/10.6084/m9.figshare.21431547.v1) (CC BY 4.0) and the [Hazels Space dataset](https://universe.roboflow.com/hazels-space/road-damage-manhole-sewer-covers) (CC BY 4.0) | [RDD2022](https://huggingface.co/datasets/dronefreak/RDD2022), road photos from six countries (CC BY-SA 4.0) | [Objects365](https://www.objects365.org/), a general dataset of 365 everyday object types. Only its "Street Lights" class is used | Google's web-scale image and text data. Not trained on dumping at all: it finds whatever best matches five text prompts ("a pile of rubbish", "dumped garbage bags", "illegal dumping of rubble", "a pile of litter on the ground", "an old mattress dumped on the street") |
+| Reported accuracy | AP50 0.70; false alarms on 2% of 300 pothole-free photos | mAP50 58 to 67% per crack type | Not measured for streetlights alone | Found 9 of 13 Commons dumping photos, with no false alarms on 13 clean photos (own test, see below) |
+| Input size | 384x384 | 512x512 | 640x640 | 672x672 (native 960, see below) |
+| ONNX file | 108 MB | 114 MB | 42 MB | 360 MB |
+| Threshold | 0.45 (the publisher's) | 0.35 | 0.50 | 0.33 |
 
-Together the three files are about 265 MB. On a laptop CPU, one photo through all three takes about a second.
+Together the four files are about 625 MB. On a 4-core laptop CPU one photo takes about 3.5 s: about 1 s for the first three models and 2.5 s for OWLv2. A free Hugging Face Space has 2 vCPUs, so expect it to be slower there.
 
 The crack model also has a pothole class. CivicLens ignores it, because the dedicated pothole model has far fewer false alarms.
 
-Thanks to Infra Intelligence, dronefreak (DetectionBench) and the D-FINE authors for publishing their weights, to Roboflow for RF-DETR, and to the RDD2022 authors (Arya et al.) and the Objects365 authors (Shao et al.) for the datasets.
+Thanks to Infra Intelligence, dronefreak (DetectionBench), the D-FINE authors and Google (OWLv2) for publishing their weights, to Roboflow for RF-DETR, and to the RDD2022 authors (Arya et al.) and the Objects365 authors (Shao et al.) for the datasets.
 
 ### How the model files are built
 
 None of the model files are stored in this repo.
 
 - **Potholes:** the publisher's own ONNX file is downloaded from a pinned revision on Hugging Face and checked against the SHA-256 in its release manifest.
-- **Cracks and streetlights:** these are only published as PyTorch checkpoints. `backend/tools/export_models.py` downloads them from pinned revisions, converts them to ONNX, and refuses to save the file unless ONNX Runtime gives the same output as PyTorch on the same input. PyTorch is only needed for that step. The Docker image does it in a separate build stage, so the running app installs nothing heavier than ONNX Runtime.
+- **Cracks, streetlights and dumping:** these are only published as PyTorch checkpoints. `backend/tools/export_models.py` downloads them from pinned revisions, converts them to ONNX, and fails unless ONNX Runtime finds the same things as PyTorch, in the same places with nearly the same scores, in a real road photo (`backend/tools/parity/`, all CC0). PyTorch is only needed for that step. The Docker image does it in a separate build stage, so the running app installs nothing heavier than ONNX Runtime.
 
-The D-FINE graph gives wrong results under ONNX Runtime's most aggressive optimisation level, so the app runs that model one level down. The export check uses the same setting.
+ONNX Runtime's most aggressive optimisations change the D-FINE graph's results on real photos (one streetlight scored 0.82 instead of 0.39), so the app runs it with basic optimisations only, and the export check uses the same setting.
+
+For OWLv2, the five text prompts are turned into embeddings once during export and stored in the ONNX file, so the text half of the model never runs at request time. OWLv2 is trained at 960x960, but that took about 5 s per photo on a laptop. CivicLens runs it at 672x672 (about 2.5 s), which found the same dumping photos in testing. 576 was faster still but flagged a clean roundabout as dumping. Squeezing the model to 8-bit made it no faster and moved the boxes, so it stays at full precision.
 
 The test photos in `backend/tests/samples` come from Wikimedia Commons under CC0, public domain, CC BY and CC BY-SA. Authors and licences are in [`ATTRIBUTION.md`](backend/tests/samples/ATTRIBUTION.md).
 
@@ -109,7 +113,7 @@ React + Vite + TypeScript              FastAPI + Pydantic
 │ Labelled boxes       │              │ Cracks:       RF-DETR Small      │
 │ Report card          │◀─────────────│ Streetlights: D-FINE Small       │
 └──────────────────────┘     JSON     │ Issue rules + report + optional  │
-                                      │ Gemini wording                   │
+                                      │                                  │
                                       └──────────────────────────────────┘
 ```
 
@@ -120,7 +124,6 @@ React + Vite + TypeScript              FastAPI + Pydantic
 | `backend/app/detection/model_store.py` | Pinned model sources, download and checksum |
 | `backend/tools/export_models.py` | Converts the crack and streetlight models to ONNX and checks them |
 | `backend/app/services/report_service.py` | Writes the report from the issues |
-| `backend/app/services/gemini_service.py` | Optional rewording with Gemini |
 | `frontend/src/components/DetectionView.tsx` | Draws the labelled boxes over the uploaded photo |
 
 ## Run it locally
@@ -171,8 +174,6 @@ curl -X POST http://localhost:8080/api/analyze-report \
 
 | Scope | Variable | Default | Purpose |
 | --- | --- | --- | --- |
-| Backend | `GEMINI_API_KEY` | unset | Optional. Lets Gemini reword the report |
-| Backend | `GEMINI_MODEL` | `gemini-3.5-flash` | Gemini model used for wording |
 | Backend | `CIVICLENS_MODEL_DIR` | `backend/models` | Where the model files are kept |
 | Backend | `CIVICLENS_THRESHOLD_<MODEL_ID>` | see the table above | Override a model's threshold, e.g. `CIVICLENS_THRESHOLD_DFINE_SMALL_OBJ365=0.6` |
 | Backend | `PORT` | `8080` | HTTP port |
@@ -187,32 +188,25 @@ cd backend && pytest -q
 cd ../frontend && npm run build
 ```
 
-There are 44 backend tests:
+There are 62 backend tests:
 
-- **Real photos:** the actual models run on nine of them, covering potholes, cracks, streetlights and a clean road. They check what's found and what isn't, the severities, the departments, and that a streetlight fault is only reported when the citizen says so.
+- **Real photos:** the actual models run on 13 of them, covering potholes, cracks, streetlights, dumping and a clean road. They check what's found and what isn't (no dumping in any of the 9 non-dumping photos), the severities, the departments, and that a streetlight fault is only reported when the citizen says so.
 - **Rules:** unit tests cover every severity rule, the duplicate-box rule and the resize that matches PyTorch.
-- **Gemini:** a test checks that Gemini can't change the detectors' facts.
 - **PyTorch:** a test checks that the app never imports it.
 
 GitHub Actions runs everything on every push. It converts the models once and caches them.
 
 ## Hosting
 
-The backend needs a host that runs Docker with about 1 GB of memory. Serverless functions are a poor fit for 265 MB of models, so:
+The live site is a **demo**: it has no detection server running, because hosting 625 MB of models on a CPU host costs money. Instead it offers six sample photos (potholes, road cracks, a streetlight reported as not working, illegal dumping, a clean street, and a pothole inside cracking). Each result is the real backend's output for that photo, saved ahead of time by `backend/tools/make_demo_samples.py`, and shown through the same boxes, report and routing as a live result. `backend/tests/test_demo_samples.py` runs the models again and fails if a saved result no longer matches. Uploading your own photo on the live site explains that real detection needs the backend.
 
-- **Backend:** a free Hugging Face Space using the Docker SDK. `.github/workflows/deploy-backend.yml` uploads `backend/` to the Space whenever the default branch changes, and the Space builds `backend/Dockerfile`, model conversion included.
-- **Frontend:** Vercel (or Netlify), built from `frontend/`. `frontend/.env.production` points it at the Space, so no environment variable is needed in Vercel.
+For real detection on your own photos, [run it locally](#run-it-locally).
 
-To switch the deployment on, add two things under the repo's **Settings → Secrets and variables → Actions**:
+How it is wired:
 
-| Kind | Name | Value |
-| --- | --- | --- |
-| Secret | `HF_TOKEN` | A Hugging Face access token with write access |
-| Variable | `HF_SPACE` | The Space id, e.g. `Kea-nhlapo/civiclens-api` |
-
-Until both exist, the deploy job notes that they're missing and stops without failing. If the Space id isn't `Kea-nhlapo/civiclens-api`, update `VITE_API_BASE_URL` in `frontend/.env.production` to `https://<owner>-<space-name>.hf.space`.
-
-A free Space goes to sleep when nobody uses it for a while, so the first request after a quiet spell takes longer while it wakes up.
+- `frontend/.env.production` sets `VITE_DEMO_MODE=true`, so production builds never call a server. To point a build at a running backend, set `VITE_DEMO_MODE=false` and `VITE_API_BASE_URL` to its URL. Outside demo mode, the sample picker also appears whenever the server can't be reached.
+- `.github/workflows/deploy-backend.yml` can push `backend/` to a Hugging Face Docker Space, but it only runs when the repo variable `DEPLOY_BACKEND` is `true` (plus the `HF_TOKEN` secret and `HF_SPACE` variable). Docker Spaces now need Hugging Face PRO (about $9 a month), so it is switched off.
+- Options for hosting the backend later: Hugging Face PRO, or Azure for Students.
 
 ## Limitations
 
@@ -236,7 +230,10 @@ A free Space goes to sleep when nobody uses it for a while, so the first request
 - Objects365's licence terms aren't clear: third-party mirrors list CC BY 4.0 and some listings say non-commercial. The D-FINE weights are Apache-2.0, but check the dataset terms before any commercial use.
 
 **Illegal dumping**
-- Not detected yet. I couldn't find an openly licensed model trained on dumping in street photos. The ones that exist are AGPL (Ultralytics YOLO) or offer only a dataset or a hosted API. The next best option is an open-vocabulary model such as OWLv2 (Apache-2.0), which finds objects from a text prompt like "pile of rubbish". It's slower and less accurate than a trained detector.
+- This is zero-shot detection. OWLv2 was never trained on dumping; it finds whatever looks most like the text prompts. **Expect false positives**: a pothole full of dirt scored 0.30 against "illegal dumping of rubble", just under the 0.33 threshold, and a clean roundabout crossed it when the model ran smaller. Every dumping report says the result is less certain and asks the citizen to check the photo.
+- It also misses things. In testing it found 9 of 13 dumping photos at full size and 8 of 13 once they were shrunk to 640 px. One of the misses was a single dumped washing machine.
+- There is no permissively licensed model trained on dumping in street photos. The ones that exist are AGPL (Ultralytics YOLO) or offer only a dataset or a hosted API. A model trained on a dataset like DroneWaste or Raven Scan would do better, but that's training work, not a download.
+- The threshold was tuned on 26 photos. That's enough to set it sensibly, not enough to promise how it will do on South African streets.
 
 ## Credits and licences
 

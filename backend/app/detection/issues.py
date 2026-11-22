@@ -16,6 +16,7 @@ from app.models.schemas import Severity
 
 ROADS = "Roads and Stormwater"
 LIGHTING = "Electricity (public lighting)"
+WASTE = "Waste Management (Solid Waste)"
 SEVERITY_ORDER: dict[Severity, int] = {"Low": 0, "Medium": 1, "High": 2, "Critical": 3}
 CAVEAT = " Coverage depends on how close the photo was taken, so an inspector should confirm the size."
 
@@ -23,6 +24,9 @@ CRITICAL_COVERAGE = 0.40
 HIGH_COVERAGE = 0.15
 MEDIUM_COVERAGE = 0.05
 HIGH_COUNT = 3
+# Dumping photos are usually framed tightly on the pile, and OWLv2's boxes are
+# generous, so a much larger share of the photo is needed before it counts as large.
+DUMPING_HIGH_COVERAGE = 0.40
 CRACK_NAMES = {
     "longitudinal_crack": "lengthwise crack",
     "transverse_crack": "crosswise crack",
@@ -145,13 +149,40 @@ def streetlight_issue(lights: list[Detection], reported_out: bool) -> Issue | No
     )
 
 
+def dumping_issue(piles: list[Detection]) -> Issue | None:
+    """Dumped waste attracts more dumping, blocks pavements and drains, and can be a
+    health hazard, so any dumping is at least Medium. The detector is zero-shot and
+    makes more mistakes than the others, and the reason says so."""
+    if not piles:
+        return None
+    count, coverage = len(piles), coverage_of(piles)
+    found = f"{_plural(count, 'area')} of dumped waste covering {_percent(coverage)} of the photo"
+    if coverage >= DUMPING_HIGH_COVERAGE or count >= HIGH_COUNT:
+        severity: Severity = "High"
+        why = f"{found}, which looks like a large dump that needs a removal team."
+    else:
+        severity = "Medium"
+        why = f"{found}. Left alone, dumped waste tends to attract more dumping."
+    return Issue(
+        category="dumping",
+        issue_type="Illegal dumping",
+        department=WASTE,
+        severity=severity,
+        confidence=round(max(d.confidence for d in piles), 2),
+        count=count,
+        coverage=round(coverage, 4),
+        reason=why + " This detector matches the photo against text descriptions, so it is less certain than the others; please check the photo.",
+    )
+
+
 def find_issues(detections: list[Detection], streetlight_out: bool = False) -> list[Issue]:
     by_category = lambda c: [d for d in detections if d.category == c]  # noqa: E731
     issues = [
         pothole_issue(by_category("pothole")),
         crack_issue(by_category("crack")),
         streetlight_issue(by_category("streetlight"), streetlight_out),
+        dumping_issue(by_category("dumping")),
     ]
     found = [i for i in issues if i is not None]
-    # Most severe first; on a tie keep the order above (potholes, cracks, lights).
+    # Most severe first; on a tie keep the order above (potholes, cracks, lights, dumping).
     return sorted(found, key=lambda i: -SEVERITY_ORDER[i.severity])

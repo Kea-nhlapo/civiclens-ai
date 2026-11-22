@@ -33,10 +33,6 @@ def issue(report: dict, category: str) -> dict | None:
     return next((i for i in report["issues"] if i["category"] == category), None)
 
 
-@pytest.fixture(autouse=True)
-def no_gemini(monkeypatch) -> None:
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
 
 @pytest.mark.parametrize(
     ("name", "count", "severity"),
@@ -55,7 +51,9 @@ def test_detects_potholes_in_real_photos(name: str, count: int, severity: str) -
     assert potholes["department"] == "Roads and Stormwater"
     assert len([d for d in report["detections"] if d["category"] == "pothole"]) == count
     assert report["analysis_source"] == "detector"
-    assert report["models"] == ["pothole_rfdetr_nano_v4_r1", "rdd2022_rfdetr_small", "dfine_small_obj365"]
+    assert report["models"] == [
+        "pothole_rfdetr_nano_v4_r1", "rdd2022_rfdetr_small", "dfine_small_obj365", "owlv2_base_dumping_672",
+    ]
     for box in report["detections"]:
         assert 0 <= box["x1"] < box["x2"] <= 1
         assert 0 <= box["y1"] < box["y2"] <= 1
@@ -108,6 +106,37 @@ def test_a_streetlight_fault_without_a_light_in_the_photo_has_zero_confidence() 
     assert lights["count"] == 0
     assert lights["confidence"] == 0.0
     assert "no streetlight was found" in lights["reason"]
+
+
+@pytest.mark.parametrize(
+    ("name", "severity"),
+    [
+        ("dumping-roadside.jpg", "Medium"),
+        ("dumping-mattress.jpg", "Medium"),
+        ("dumping-lane.jpg", "Medium"),
+        ("dumping-site.jpg", "High"),
+    ],
+)
+def test_detects_illegal_dumping(name: str, severity: str) -> None:
+    report = analyze(name)
+    dumping = issue(report, "dumping")
+    assert dumping["severity"] == severity
+    assert dumping["department"] == "Waste Management (Solid Waste)"
+    assert dumping["confidence"] >= 0.33
+    assert "dumping" in categories(report)
+    assert report["issue_type"] == "Illegal dumping"
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "pothole-single.jpg", "pothole-close.jpg", "pothole-cluster.jpg", "pothole-large.jpg",
+        "crack-lengthwise.jpg", "crack-suburb.jpg", "road-clean-desert.jpg",
+        "streetlight-durban.jpg", "streetlight-night.jpg",
+    ],
+)
+def test_no_dumping_in_photos_without_any(name: str) -> None:
+    assert "dumping" not in categories(analyze(name))
 
 
 def test_finds_no_road_damage_on_a_clean_road() -> None:

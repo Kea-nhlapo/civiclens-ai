@@ -1,0 +1,73 @@
+{
+ "issue_type": "No issue detected",
+ "severity": "Low",
+ "confidence": 0.0,
+ "summary": "No potholes, road cracks or dumped waste were detected in this photo. The photo shows 4 streetlights. If one isn't working, tick \"This streetlight is not working\" and send the photo again. CivicLens can't detect other problems, such as blocked drains, yet.",
+ "responsible_department": "No report needed",
+ "recommended_action": "If there is road damage, retake the photo closer to it, in daylight, with the road surface filling most of the frame.",
+ "municipal_report": {
+  "title": "No issue detected",
+  "description": "The detectors did not find road damage or dumped waste in the attached photo, so no report has been drafted. If you can see a problem, retake the photo and try again.",
+  "location": "Location to be confirmed by the citizen",
+  "evidence_notes": "No detections above the confidence thresholds.",
+  "priority": "Low",
+  "suggested_department": "No report needed"
+ },
+ "citizen_message": "Nothing to report was found in this photo. Try a closer, clearer photo if you can see a problem.",
+ "next_steps": [
+  "Retake the photo closer to the problem",
+  "For road damage, make sure the road fills most of the frame",
+  "Report other kinds of problems directly to your municipality"
+ ],
+ "detections": [
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.6693,
+   "x1": 0.6704,
+   "y1": 0.5029,
+   "x2": 0.6877,
+   "y2": 0.6625
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.6058,
+   "x1": 0.8492,
+   "y1": 0.3773,
+   "x2": 0.9202,
+   "y2": 0.6824
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.5926,
+   "x1": 0.342,
+   "y1": 0.5092,
+   "x2": 0.3567,
+   "y2": 0.6793
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.5464,
+   "x1": 0.9038,
+   "y1": 0.3752,
+   "x2": 0.9388,
+   "y2": 0.6663
+  }
+ ],
+ "issues": [],
+ "pothole_count": 0,
+ "coverage": 0.0,
+ "severity_reason": "",
+ "image_width": 640,
+ "image_height": 360,
+ "models": [
+  "pothole_rfdetr_nano_v4_r1",
+  "rdd2022_rfdetr_small",
+  "dfine_small_obj365",
+  "owlv2_base_dumping_672"
+ ],
+ "analysis_source": "detector"
+}

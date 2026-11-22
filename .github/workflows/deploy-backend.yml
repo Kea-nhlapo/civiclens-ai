@@ -3,10 +3,13 @@ name: Deploy backend to Hugging Face
 # Pushes backend/ to a Docker Space whenever the default branch changes. The Space
 # builds backend/Dockerfile itself, including the model conversion stage.
 #
-# Needs, under Settings -> Secrets and variables -> Actions:
-#   secret   HF_TOKEN  a Hugging Face access token with write access to the Space
-#   variable HF_SPACE  the Space id, e.g. Kea-nhlapo/civiclens-api
-# Until both exist the job says so and stops without failing.
+# Switched off for now: Hugging Face Docker Spaces need a paid plan, so the live site runs
+# in demo mode instead (see the README). To switch it on, under Settings -> Secrets and
+# variables -> Actions:
+#   variable DEPLOY_BACKEND  true
+#   secret   HF_TOKEN        a Hugging Face access token with write access to the Space
+#   variable HF_SPACE        the Space id, e.g. KeaTheDingo/civiclens-api
+# Without DEPLOY_BACKEND=true the job is skipped, so pushes stay green.
 on:
   push:
     branches: [feature/civiclens-ai-mvp, main]
@@ -24,6 +27,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: vars.DEPLOY_BACKEND == 'true'
     runs-on: ubuntu-latest
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}

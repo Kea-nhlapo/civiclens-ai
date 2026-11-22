@@ -1,0 +1,121 @@
+{
+ "issue_type": "Streetlight not working",
+ "severity": "Medium",
+ "confidence": 0.79,
+ "summary": "A citizen reports a streetlight that is not working. Severity is Medium: You reported that the light is not working, and the detector found 8 streetlights in the photo. The photo cannot show whether a light works, so the fault itself comes from your report.",
+ "responsible_department": "Electricity (public lighting)",
+ "recommended_action": "Send a lighting technician to check the lamp, its wiring and its supply.",
+ "municipal_report": {
+  "title": "Medium priority: streetlight not working reported",
+  "description": "A citizen photo shows a streetlight that is not working at a location the citizen still needs to confirm. You reported that the light is not working, and the detector found 8 streetlights in the photo. The photo cannot show whether a light works, so the fault itself comes from your report. Please inspect the site. Check this draft before sending it through the municipality's official channel.",
+  "location": "Location to be confirmed by the citizen",
+  "evidence_notes": "Fault reported by the citizen; streetlight visible in the photo (highest confidence 79%).",
+  "priority": "Medium",
+  "suggested_department": "Electricity (public lighting)"
+ },
+ "citizen_message": "Your draft report is ready. Check the location and details, then submit it to your municipality yourself.",
+ "next_steps": [
+  "Confirm the exact location",
+  "Attach the photo",
+  "Submit through your municipality's official channel",
+  "Keep the reference number you receive"
+ ],
+ "detections": [
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.7932,
+   "x1": 0.5566,
+   "y1": 0.8913,
+   "x2": 0.5707,
+   "y2": 0.9995
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.687,
+   "x1": 0.3863,
+   "y1": 0.6285,
+   "x2": 0.3993,
+   "y2": 0.765
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.6767,
+   "x1": 0.8068,
+   "y1": 0.8895,
+   "x2": 0.8198,
+   "y2": 0.9926
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.6477,
+   "x1": 0.4369,
+   "y1": 0.9371,
+   "x2": 0.4465,
+   "y2": 1.0
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.6095,
+   "x1": 0.6506,
+   "y1": 0.9278,
+   "x2": 0.6608,
+   "y2": 0.9993
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.5818,
+   "x1": 0.3057,
+   "y1": 0.8993,
+   "x2": 0.3207,
+   "y2": 0.9992
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.5789,
+   "x1": 0.2613,
+   "y1": 0.6363,
+   "x2": 0.272,
+   "y2": 0.7434
+  },
+  {
+   "label": "streetlight",
+   "category": "streetlight",
+   "confidence": 0.5428,
+   "x1": 0.882,
+   "y1": 0.9149,
+   "x2": 0.8953,
+   "y2": 0.9995
+  }
+ ],
+ "issues": [
+  {
+   "category": "streetlight",
+   "issue_type": "Streetlight not working",
+   "department": "Electricity (public lighting)",
+   "severity": "Medium",
+   "confidence": 0.79,
+   "count": 8,
+   "coverage": 0.0097,
+   "reason": "You reported that the light is not working, and the detector found 8 streetlights in the photo. The photo cannot show whether a light works, so the fault itself comes from your report."
+  }
+ ],
+ "pothole_count": 0,
+ "coverage": 0.0097,
+ "severity_reason": "You reported that the light is not working, and the detector found 8 streetlights in the photo. The photo cannot show whether a light works, so the fault itself comes from your report.",
+ "image_width": 640,
+ "image_height": 427,
+ "models": [
+  "pothole_rfdetr_nano_v4_r1",
+  "rdd2022_rfdetr_small",
+  "dfine_small_obj365",
+  "owlv2_base_dumping_672"
+ ],
+ "analysis_source": "detector"
+}
