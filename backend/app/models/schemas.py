@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 Severity = Literal["Low", "Medium", "High", "Critical"]
-AnalysisSource = Literal["detector", "detector+gemini"]
+AnalysisSource = Literal["detector"]
 Category = Literal["pothole", "crack", "streetlight", "dumping"]
 
 
@@ -60,15 +60,3 @@ class AnalysisReport(BaseModel):
     image_height: int = 0
     models: list[str] = Field(default_factory=list)
     analysis_source: AnalysisSource = "detector"
-
-
-class ReportWording(BaseModel):
-    """The parts Gemini may rewrite. Facts such as severity stay with the detector."""
-
-    summary: str
-    recommended_action: str
-    title: str
-    description: str
-    evidence_notes: str
-    citizen_message: str
-    next_steps: list[str]

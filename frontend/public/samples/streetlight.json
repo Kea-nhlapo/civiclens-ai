@@ -7,7 +7,7 @@
  "recommended_action": "Send a lighting technician to check the lamp, its wiring and its supply.",
  "municipal_report": {
   "title": "Medium priority: streetlight not working reported",
-  "description": "A citizen photo shows a streetlight that is not working at a location the citizen still needs to confirm. You reported that the light is not working, and the detector found 8 streetlights in the photo. The photo cannot show whether a light works, so the fault itself comes from your report. Please inspect the site. This draft was generated automatically and should be checked before it is submitted.",
+  "description": "A citizen photo shows a streetlight that is not working at a location the citizen still needs to confirm. You reported that the light is not working, and the detector found 8 streetlights in the photo. The photo cannot show whether a light works, so the fault itself comes from your report. Please inspect the site. Check this draft before sending it through the municipality's official channel.",
   "location": "Location to be confirmed by the citizen",
   "evidence_notes": "Fault reported by the citizen; streetlight visible in the photo (highest confidence 79%).",
   "priority": "Medium",

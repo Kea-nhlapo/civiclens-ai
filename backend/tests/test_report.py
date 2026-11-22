@@ -33,10 +33,6 @@ def issue(report: dict, category: str) -> dict | None:
     return next((i for i in report["issues"] if i["category"] == category), None)
 
 
-@pytest.fixture(autouse=True)
-def no_gemini(monkeypatch) -> None:
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
 
 @pytest.mark.parametrize(
     ("name", "count", "severity"),

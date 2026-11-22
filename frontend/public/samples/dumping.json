@@ -7,7 +7,7 @@
  "recommended_action": "Send a removal team with a truck, and consider signage or monitoring to stop repeat dumping.",
  "municipal_report": {
   "title": "High priority: illegal dumping reported",
-  "description": "A citizen photo shows illegally dumped waste at a location the citizen still needs to confirm. 1 area of dumped waste covering 52% of the photo, which looks like a large dump that needs a removal team. This detector matches the photo against text descriptions, so it is less certain than the others; please check the photo. Please inspect the site. This draft was generated automatically and should be checked before it is submitted.",
+  "description": "A citizen photo shows illegally dumped waste at a location the citizen still needs to confirm. 1 area of dumped waste covering 52% of the photo, which looks like a large dump that needs a removal team. This detector matches the photo against text descriptions, so it is less certain than the others; please check the photo. Please inspect the site. Check this draft before sending it through the municipality's official channel.",
   "location": "Location to be confirmed by the citizen",
   "evidence_notes": "Automated detection: illegally dumped waste, highest confidence 53%, covering about 52% of the photo.",
   "priority": "High",

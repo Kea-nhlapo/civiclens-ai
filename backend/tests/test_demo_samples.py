@@ -18,10 +18,6 @@ INDEX = json.loads((SAMPLES / "index.json").read_text(encoding="utf-8"))
 TOLERANCE = 2e-3  # rounding in the saved boxes and scores; ONNX Runtime can differ by a hair between machines
 
 
-@pytest.fixture(autouse=True)
-def no_gemini(monkeypatch) -> None:
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-
 
 def close(a: float, b: float) -> bool:
     return abs(a - b) <= TOLERANCE

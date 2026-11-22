@@ -2,7 +2,7 @@
 
 Take a photo of a problem on your street and CivicLens finds it, rates how serious it looks, and drafts a report for the right municipal department. It detects **potholes**, **road cracks**, **streetlights** and **illegal dumping**.
 
-The detection is real: four open-source object detection models run on every upload and return what they find, with boxes and confidence scores. Severity and the report are built from those detections. Gemini can optionally polish the wording, but it never decides what's in the photo.
+The detection is real: four open-source object detection models run on every upload and return what they find, with boxes and confidence scores. Severity and the report are built from those detections.
 
 > CivicLens never submits anything. Every report is a draft for you to check and send through your municipality's official channel.
 
@@ -46,7 +46,7 @@ A photo can show more than one problem. Each one becomes its own issue, the most
 
    **Illegal dumping:** Medium for any dumping, because it attracts more dumping and can block pavements and drains. High when it covers 40% or more of the photo or there are 3 or more separate piles.
 
-4. The report is written from those numbers and addressed to the department for the most severe issue. If `GEMINI_API_KEY` is set, Gemini rewrites the text more naturally. It can't change what was found, the severities, the confidences or the boxes, and if the call fails the detectors' own wording is used.
+4. The report is written from those numbers and addressed to the department for the most severe issue.
 5. The frontend draws the boxes over your photo, coloured by type: red for potholes, amber for cracks, blue for streetlights, violet for dumping.
 
 Part of a real response (a small pothole inside a wide patch of alligator cracking):
@@ -113,7 +113,7 @@ React + Vite + TypeScript              FastAPI + Pydantic
 │ Labelled boxes       │              │ Cracks:       RF-DETR Small      │
 │ Report card          │◀─────────────│ Streetlights: D-FINE Small       │
 └──────────────────────┘     JSON     │ Issue rules + report + optional  │
-                                      │ Gemini wording                   │
+                                      │                                  │
                                       └──────────────────────────────────┘
 ```
 
@@ -124,7 +124,6 @@ React + Vite + TypeScript              FastAPI + Pydantic
 | `backend/app/detection/model_store.py` | Pinned model sources, download and checksum |
 | `backend/tools/export_models.py` | Converts the crack and streetlight models to ONNX and checks them |
 | `backend/app/services/report_service.py` | Writes the report from the issues |
-| `backend/app/services/gemini_service.py` | Optional rewording with Gemini |
 | `frontend/src/components/DetectionView.tsx` | Draws the labelled boxes over the uploaded photo |
 
 ## Run it locally
@@ -175,8 +174,6 @@ curl -X POST http://localhost:8080/api/analyze-report \
 
 | Scope | Variable | Default | Purpose |
 | --- | --- | --- | --- |
-| Backend | `GEMINI_API_KEY` | unset | Optional. Lets Gemini reword the report |
-| Backend | `GEMINI_MODEL` | `gemini-3.5-flash` | Gemini model used for wording |
 | Backend | `CIVICLENS_MODEL_DIR` | `backend/models` | Where the model files are kept |
 | Backend | `CIVICLENS_THRESHOLD_<MODEL_ID>` | see the table above | Override a model's threshold, e.g. `CIVICLENS_THRESHOLD_DFINE_SMALL_OBJ365=0.6` |
 | Backend | `PORT` | `8080` | HTTP port |
@@ -195,7 +192,6 @@ There are 62 backend tests:
 
 - **Real photos:** the actual models run on 13 of them, covering potholes, cracks, streetlights, dumping and a clean road. They check what's found and what isn't (no dumping in any of the 9 non-dumping photos), the severities, the departments, and that a streetlight fault is only reported when the citizen says so.
 - **Rules:** unit tests cover every severity rule, the duplicate-box rule and the resize that matches PyTorch.
-- **Gemini:** a test checks that Gemini can't change the detectors' facts.
 - **PyTorch:** a test checks that the app never imports it.
 
 GitHub Actions runs everything on every push. It converts the models once and caches them.

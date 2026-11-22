@@ -7,7 +7,7 @@
  "recommended_action": "Inspect the road base and plan resurfacing before the cracking turns into potholes.",
  "municipal_report": {
   "title": "High priority: road cracks reported",
-  "description": "A citizen photo shows road cracking at a location the citizen still needs to confirm. 1 crack area (alligator (fatigue) cracking) covering 24% of the photo. Widespread alligator cracking usually means the road base is failing and potholes will follow. Coverage depends on how close the photo was taken, so an inspector should confirm the size. Please inspect the site. This draft was generated automatically and should be checked before it is submitted.",
+  "description": "A citizen photo shows road cracking at a location the citizen still needs to confirm. 1 crack area (alligator (fatigue) cracking) covering 24% of the photo. Widespread alligator cracking usually means the road base is failing and potholes will follow. Coverage depends on how close the photo was taken, so an inspector should confirm the size. Please inspect the site. Check this draft before sending it through the municipality's official channel.",
   "location": "Location to be confirmed by the citizen",
   "evidence_notes": "Automated detection: road cracking, highest confidence 92%, covering about 24% of the photo.",
   "priority": "High",

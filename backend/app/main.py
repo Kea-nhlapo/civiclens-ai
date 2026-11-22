@@ -9,7 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.detection.detector import detector, load_photo
 from app.detection.issues import find_issues
 from app.models.schemas import AnalysisReport
-from app.services.gemini_service import reword_with_gemini
 from app.services.report_service import build_report
 from app.utils.image_utils import validate_image
 
@@ -51,8 +50,7 @@ def analyze(
     data: bytes, mime_type: str, location: str | None, notes: str | None, streetlight_out: bool = False
 ) -> AnalysisReport:
     result = detector.detect(load_photo(data))
-    report = build_report(result, find_issues(result.detections, streetlight_out), location, notes)
-    return reword_with_gemini(report, data, mime_type, location, notes)
+    return build_report(result, find_issues(result.detections, streetlight_out), location, notes)
 
 
 @app.post("/api/analyze-report", response_model=AnalysisReport)

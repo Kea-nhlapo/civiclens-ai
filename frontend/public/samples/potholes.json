@@ -7,7 +7,7 @@
  "recommended_action": "Inspect soon and schedule a repair. Mark the hazard if the repair cannot happen quickly.",
  "municipal_report": {
   "title": "High priority: potholes reported",
-  "description": "A citizen photo shows 4 potholes at a location the citizen still needs to confirm. 4 potholes close together, covering 3% of the photo. Coverage depends on how close the photo was taken, so an inspector should confirm the size. Please inspect the site. This draft was generated automatically and should be checked before it is submitted.",
+  "description": "A citizen photo shows 4 potholes at a location the citizen still needs to confirm. 4 potholes close together, covering 3% of the photo. Coverage depends on how close the photo was taken, so an inspector should confirm the size. Please inspect the site. Check this draft before sending it through the municipality's official channel.",
   "location": "Location to be confirmed by the citizen",
   "evidence_notes": "Automated detection: 4 potholes, highest confidence 81%, covering about 3% of the photo.",
   "priority": "High",

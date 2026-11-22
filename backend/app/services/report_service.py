@@ -1,8 +1,7 @@
 """Build the report from what the detectors actually found.
 
-This is the report every request gets. When Gemini is configured it may reword the
-text afterwards, but the facts here (issue types, severities, confidences, the
-boxes) always come from the detectors.
+Every request gets this report. The facts in it (issue types, severities,
+confidences, the boxes) come from the detectors.
 
 The most severe issue leads: it sets the issue type, department and priority. Any
 other issues in the same photo are listed in the description so nothing is lost.
@@ -156,7 +155,7 @@ def build_report(
             title=f"{lead.severity} priority: {lead.issue_type.lower()} reported",
             description=(
                 f"A citizen photo shows {_what(lead)} {where}. {lead.reason}{also} "
-                "Please inspect the site. This draft was generated automatically and should be checked before it is submitted."
+                "Please inspect the site. Check this draft before sending it through the municipality's official channel."
             ),
             location=place,
             evidence_notes=evidence,
