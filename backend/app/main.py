@@ -3,14 +3,15 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.detection.detector import detector, load_photo
 from app.detection.issues import find_issues
 from app.models.schemas import AnalysisReport
 from app.services.report_service import build_report
-from app.utils.image_utils import validate_image
+from app.utils.image_utils import MAX_IMAGE_BYTES, validate_image
+from app.utils.rate_limit import limiter, visitor_of
 
 logger = logging.getLogger(__name__)
 
@@ -55,12 +56,23 @@ def analyze(
 
 @app.post("/api/analyze-report", response_model=AnalysisReport)
 async def analyze_report(
+    request: Request,
     image: UploadFile = File(...),
-    location: str | None = Form(default=None),
-    notes: str | None = Form(default=None),
+    location: str | None = Form(default=None, max_length=200),
+    notes: str | None = Form(default=None, max_length=500),
     # A photo can't show whether a light works, so the citizen tells us.
     streetlight_out: bool = Form(default=False),
 ) -> AnalysisReport:
+    # Each photo costs CPU time on the host, so cap how many get analysed.
+    wait = limiter.check(visitor_of(request.headers.get("x-forwarded-for"), request.client.host if request.client else None))
+    if wait is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many photos for now. Please try again a little later.",
+            headers={"Retry-After": str(wait)},
+        )
+    if image.size is not None and image.size > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=400, detail="Image must be 10 MB or smaller.")
     data = await image.read()
     try:
         mime_type = validate_image(data)
