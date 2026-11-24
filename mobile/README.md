@@ -22,26 +22,14 @@ The app talks to the API on Cloud Run. The API's limits apply here too, so the a
 
 You need Flutter and Android Studio (for the Android SDK and an emulator).
 
-The `android/` folder isn't in the repo yet. Generate it once:
-
 ```
 cd mobile
-flutter create . --platforms=android --project-name civiclens --org com.keanhlapo
-```
-
-Then add internet access to the release build. Open `android/app/src/main/AndroidManifest.xml` and add this line just above `<application`:
-
-```xml
-<uses-permission android:name="android.permission.INTERNET"/>
-```
-
-Then:
-
-```
 flutter pub get
 flutter test
 flutter run
 ```
+
+It also runs in Chrome with `flutter run -d chrome`, which is the quickest way to try it without a phone.
 
 To build an APK you can install on a phone:
 

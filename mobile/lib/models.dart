@@ -26,8 +26,9 @@ class Report {
   final List<Detection> detections;
   final List<Issue> issues;
 
-  /// "No issue detected" comes back as a normal report with nothing found.
-  bool get foundSomething => detections.isNotEmpty || issues.isNotEmpty;
+  /// "No issue detected" comes back as a normal report with no issues. It can still have
+  /// boxes, for example working streetlights, so the boxes alone don't count.
+  bool get foundSomething => issues.isNotEmpty;
 
   factory Report.fromJson(Map<String, dynamic> json) => Report(
         issueType: json['issue_type'] as String,

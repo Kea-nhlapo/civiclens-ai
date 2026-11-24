@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // Same palette as the web app.
 const ink = Color(0xFF07111F);

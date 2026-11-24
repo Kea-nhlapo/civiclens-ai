@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models.dart';
 
@@ -58,7 +58,7 @@ class _BoxPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       )..layout(maxWidth: size.width);
       final top = rect.top - label.height < 0 ? rect.top : rect.top - label.height;
-      final left = rect.left.clamp(0.0, math.max(0.0, size.width - label.width));
+      final left = rect.left.clamp(0.0, math.max(0.0, size.width - label.width)).toDouble();
       label.paint(canvas, Offset(left, top));
     }
   }

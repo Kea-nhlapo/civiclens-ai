@@ -1,6 +1,4 @@
-import 'dart:typed_data';
-
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -36,7 +34,8 @@ class ReportScreen extends StatelessWidget {
             Text(report.issueType, style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(report.summary, style: text.bodyLarge?.copyWith(height: 1.45)),
-            if (report.severityReason.isNotEmpty) ...[
+            // The summary usually already explains the severity, so only add the reason when it doesn't.
+            if (report.severityReason.isNotEmpty && !report.summary.contains(report.severityReason)) ...[
               const SizedBox(height: 8),
               Text('Why ${report.severity}: ${report.severityReason}', style: const TextStyle(color: muted, height: 1.4)),
             ],
@@ -106,7 +105,7 @@ class _MunicipalReportCard extends StatelessWidget {
             Expanded(
               child: FilledButton.icon(
                 key: const Key('share'),
-                onPressed: () => Share.share(report.asText(), subject: report.title),
+                onPressed: () => SharePlus.instance.share(ShareParams(text: report.asText(), subject: report.title)),
                 icon: const Icon(Icons.share_outlined),
                 label: const Text('Share'),
               ),

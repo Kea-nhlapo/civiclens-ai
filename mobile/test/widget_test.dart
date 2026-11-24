@@ -5,7 +5,7 @@ import 'package:civiclens/models.dart';
 import 'package:civiclens/screens/home_screen.dart';
 import 'package:civiclens/screens/report_screen.dart';
 import 'package:civiclens/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -29,6 +29,10 @@ void main() {
     expect(find.text('Take a photo'), findsOneWidget);
     expect(find.text('Choose photo'), findsOneWidget);
 
+    // The button is below the fold on a phone, so scroll to it like a person would.
+    // The text fields scroll too, so name the page's own list.
+    final page = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.byKey(const Key('analyze')), 200, scrollable: page);
     await tester.tap(find.byKey(const Key('analyze')));
     await tester.pump();
 
