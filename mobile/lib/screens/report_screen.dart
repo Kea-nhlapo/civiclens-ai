@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models.dart';
+import '../report_document.dart';
 import '../theme.dart';
 import '../widgets/detection_photo.dart';
 
@@ -15,7 +16,6 @@ class ReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final r = report.municipalReport;
     final colour = severityColor(report.severity);
     return Scaffold(
       appBar: AppBar(title: const Text('Report')),
@@ -54,7 +54,7 @@ class ReportScreen extends StatelessWidget {
             _Section(icon: Icons.build_outlined, title: 'What to do', body: report.recommendedAction),
             if (report.foundSomething) ...[
               const SizedBox(height: 6),
-              _MunicipalReportCard(report: r),
+              _MunicipalReportCard(report: report, photo: photo),
             ],
             if (report.nextSteps.isNotEmpty) ...[
               const SizedBox(height: 18),
@@ -80,13 +80,46 @@ class ReportScreen extends StatelessWidget {
   }
 }
 
-class _MunicipalReportCard extends StatelessWidget {
-  const _MunicipalReportCard({required this.report});
+class _MunicipalReportCard extends StatefulWidget {
+  const _MunicipalReportCard({required this.report, required this.photo});
 
-  final MunicipalReport report;
+  final Report report;
+  final Uint8List photo;
+
+  @override
+  State<_MunicipalReportCard> createState() => _MunicipalReportCardState();
+}
+
+class _MunicipalReportCardState extends State<_MunicipalReportCard> {
+  bool _preparing = false;
+
+  /// Builds the Word report with the marked photo and opens the share sheet,
+  /// so it can go straight to the municipality on WhatsApp or email.
+  Future<void> _send() async {
+    setState(() => _preparing = true);
+    try {
+      final now = DateTime.now();
+      final marked = await markPhoto(widget.photo, widget.report.detections);
+      final docx = reportDocx(widget.report, marked, now);
+      final name = reportFileName(widget.report, now);
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile.fromData(docx, mimeType: docxMimeType, name: name)],
+        fileNameOverrides: [name],
+        text: widget.report.municipalReport.title,
+      ));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Couldn't create the report. Please try again.")));
+      }
+    } finally {
+      if (mounted) setState(() => _preparing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final report = widget.report.municipalReport;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -105,9 +138,11 @@ class _MunicipalReportCard extends StatelessWidget {
             Expanded(
               child: FilledButton.icon(
                 key: const Key('share'),
-                onPressed: () => SharePlus.instance.share(ShareParams(text: report.asText(), subject: report.title)),
-                icon: const Icon(Icons.share_outlined),
-                label: const Text('Share'),
+                onPressed: _preparing ? null : _send,
+                icon: _preparing
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.description_outlined),
+                label: const Text('Send report'),
               ),
             ),
             const SizedBox(width: 10),

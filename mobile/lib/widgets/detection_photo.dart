@@ -39,30 +39,35 @@ class _BoxPainter extends CustomPainter {
   final List<Detection> detections;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    for (final d in detections) {
-      final colour = _categoryColours[d.category] ?? Colors.white;
-      final rect = Rect.fromLTRB(d.x1 * size.width, d.y1 * size.height, d.x2 * size.width, d.y2 * size.height);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(6)),
-        Paint()
-          ..color = colour
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5,
-      );
-      final label = TextPainter(
-        text: TextSpan(
-          text: ' ${d.label} ${(d.confidence * 100).round()}% ',
-          style: TextStyle(color: const Color(0xFF07111F), backgroundColor: colour, fontSize: 11, fontWeight: FontWeight.w700),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout(maxWidth: size.width);
-      final top = rect.top - label.height < 0 ? rect.top : rect.top - label.height;
-      final left = rect.left.clamp(0.0, math.max(0.0, size.width - label.width)).toDouble();
-      label.paint(canvas, Offset(left, top));
-    }
-  }
+  void paint(Canvas canvas, Size size) => paintDetections(canvas, size, detections);
 
   @override
   bool shouldRepaint(_BoxPainter old) => old.detections != detections;
+}
+
+/// Draws a labelled box for each detection. Shared by the screen and the Word report.
+void paintDetections(Canvas canvas, Size size, List<Detection> detections,
+    {double strokeWidth = 2.5, double fontSize = 11}) {
+  for (final d in detections) {
+    final colour = _categoryColours[d.category] ?? Colors.white;
+    final rect = Rect.fromLTRB(d.x1 * size.width, d.y1 * size.height, d.x2 * size.width, d.y2 * size.height);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(strokeWidth * 2.4)),
+      Paint()
+        ..color = colour
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth,
+    );
+    final label = TextPainter(
+      text: TextSpan(
+        text: ' ${d.label} ${(d.confidence * 100).round()}% ',
+        style: TextStyle(
+            color: const Color(0xFF07111F), backgroundColor: colour, fontSize: fontSize, fontWeight: FontWeight.w700),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: size.width);
+    final top = rect.top - label.height < 0 ? rect.top : rect.top - label.height;
+    final left = rect.left.clamp(0.0, math.max(0.0, size.width - label.width)).toDouble();
+    label.paint(canvas, Offset(left, top));
+  }
 }
